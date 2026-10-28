@@ -81,7 +81,7 @@ const contents = {
 };
 
 const config = {
-  blog: { title: 'Blog — Charles’s Notebook', width: 740, x: .16, y: 30 },
+  blog: { title: "Charles's Blog", width: 740, x: .16, y: 30 },
   sherlock: { title: 'Sherlock — Search My Desktop', width: 680, x: .14, y: 35 },
   panels: { title: 'Control Panels — Appearance', width: 520, x: .27, y: 45 },
   scrapbook: { title: 'Scrapbook — Saved Projects', width: 600, x: .20, y: 60 },
