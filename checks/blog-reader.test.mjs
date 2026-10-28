@@ -18,7 +18,7 @@ test('feed rejects duplicates, foreign links and malformed entries', () => {
 test('article retains useful content while removing active HTML and presentation', () => {
   const dom=environment();
   const box=document.createElement('div');
-  box.append(articleFragment('<style>body{display:none}</style><script>alert(1)</script><iframe src="https://example.com"></iframe><p id="x" style="color:red" onclick="bad()">Text <strong>bold</strong><a href="javascript:alert(1)">unsafe</a><a href="./next/">safe</a><img src="https://example.com/p.png" onerror="bad()"><img src="data:text/html,bad"></p>',post.url));
+  box.append(articleFragment('<style>body{display:none}</style><script>alert(1)</script><iframe src="https://example.com"></iframe><p id="x" style="color:red" onclick="bad()">Text <strong>bold</strong><a href="javascript:alert(1)">unsafe</a><a href="./next/">safe</a><a href="#empty"><span></span></a><img src="https://example.com/p.png" onerror="bad()"><img src="data:text/html,bad"></p>',post.url));
   assert.equal(box.querySelectorAll('script,style,iframe,[style],[onclick],[onerror],[id]').length,0);
   assert.equal(box.querySelectorAll('a').length,1);
   assert.equal(box.querySelector('a').href,post.url+'next/');

@@ -43,6 +43,7 @@ export function articleFragment(html, base, doc = document) {
       if (!allowed.has(tag)) { copy(child, target); continue; }
       const element = doc.createElement(tag);
       if (tag === 'a') {
+        if (!child.textContent.trim() && !child.querySelector('img')) continue;
         const href = child.getAttribute('href');
         const url = href && safeURL(href, base);
         if (!url) { copy(child, target); continue; }
