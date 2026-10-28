@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#c6c1b1">
+  <meta name="description" content="Charles Yi’s personal desktop: data science, AI evaluation, research projects, and work in development.">
+  <title>Charles Yi — Personal Desktop</title>
+  <link rel="icon" href="./favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" sizes="any">
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" sizes="180x180">
+  <link rel="preload" href="./assets/fonts/ChicagoKare-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#desktop">Skip to portfolio</a>
+  <div class="scene">
+    <section class="computer" aria-label="Classic Macintosh portfolio display">
+      <div class="computer-shell">
+        <div class="screen-bezel">
+          <div class="screen-stage" id="screen-stage">
+            <div class="screen-os" id="screen-os">
+  <header class="menubar">
+    <div class="menu system-menu"><button class="brand-menu menu-toggle" aria-expanded="false" aria-label="System menu"><svg class="rainbow-mark" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true"><path fill="#111" d="M4 1h8v2h2v10h-2v2H4v-2H2V3h2z"/><path fill="#47b846" d="M4 2h8v2H4z"/><path fill="#ffe900" d="M3 4h10v2H3z"/><path fill="#ff8a00" d="M3 6h10v2H3z"/><path fill="#ed3024" d="M3 8h10v2H3z"/><path fill="#a74999" d="M3 10h10v2H3z"/><path fill="#2a86d3" d="M4 12h8v2H4z"/></svg></button><div class="dropdown" hidden><button data-open="welcome">About This Researcher</button><hr><button data-open="panels">Control Panels</button><button data-open="sherlock">Sherlock</button><button data-open="scrapbook">Scrapbook</button><button data-open="note">Stickies</button></div></div>
+    <strong class="finder-name">Charles Yi</strong>
+    <nav aria-label="Desktop menus">
+      <div class="menu"><button class="menu-toggle" aria-expanded="false">File</button><div class="dropdown" hidden><button data-open="sherlock">Find with Sherlock…</button><button data-open="scrapbook">Open Scrapbook</button><hr><button data-open="welcome">Open welcome</button><button data-open="research">Open My Work</button><button data-open="resume">Open résumé</button><hr><button data-action="close">Close active window</button></div></div>
+      <div class="menu"><button class="menu-toggle" aria-expanded="false">View</button><div class="dropdown" hidden><button data-open="panels">Control Panels…</button><button data-action="tidy">Arrange windows</button><button data-action="wallpaper">Change desktop colour</button><hr><button data-action="motion" id="motion-toggle" aria-pressed="true">Opening animations: on</button><button data-action="boot">Replay startup</button><button data-action="sleep">Sleep…</button></div></div>
+      <div class="menu"><button class="menu-toggle" aria-expanded="false">Window</button><div class="dropdown window-list-menu" hidden><div id="open-window-list"></div><hr><button data-open="note">Show field note</button></div></div>
+      <div class="menu"><button class="menu-toggle" aria-expanded="false">Help</button><div class="dropdown" hidden><button data-open="help">Using this desktop</button></div></div>
+    </nav>
+    <div class="menu-right"><span class="location">MY · Subang Jaya</span><time id="clock"></time><span class="finder-indicator">Finder</span></div>
+  </header>
+  <main id="desktop" tabindex="-1" aria-label="Charles Yi’s research desktop">
+    <nav id="desktop-icons" class="desktop-icons" aria-label="Portfolio applications"></nav>
+    <div id="windows"></div>
+    <div class="control-strip" aria-label="Quick controls"><span class="grip" aria-hidden="true"></span><button data-open="welcome" aria-label="Open welcome">⌂</button><button data-open="sherlock" aria-label="Find with Sherlock" title="Sherlock">⌕</button><button data-open="scrapbook" aria-label="Open Scrapbook" title="Scrapbook">▣</button><button data-open="panels" aria-label="Open Control Panels" title="Control Panels">▧</button><button data-open="help" aria-label="Open desktop help">?</button><span class="strip-label"><i></i> Charles Yi · Personal Desktop</span></div>
+  </main>
+            </div>
+            <div id="sleep-screen" class="sleep-screen" role="dialog" aria-modal="true" aria-label="Sleeping desktop" tabindex="-1" hidden><div class="starfield" aria-hidden="true"></div><div class="sleep-message"><span class="sleep-mac" aria-hidden="true"></span><strong>Still curious. Just resting.</strong><span>Click, tap, or press any key to wake.</span></div></div>
+            <div class="boot-screen" id="boot-screen" hidden aria-live="polite">
+              <div class="boot-card"><div id="boot-icon" aria-hidden="true"></div><strong>Welcome to Charles’s desktop.</strong><span>Starting up...</span><div class="boot-progress"><i></i></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="case-detail" aria-hidden="true"><span class="case-badge"></span><span class="case-vents"></span><span class="floppy-slot"></span></div>
+      </div>
+    </section>
+
+  </div>
+  <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+  <noscript><div class="noscript">Charles Yi — Master of Data Science student at Monash University Malaysia. Research interests: natural language processing, information retrieval, model evaluation and reliable AI. Please enable JavaScript to explore this interactive portfolio. Contact: charles.yi@msn.com.</div></noscript>
+</body>
+</html>
