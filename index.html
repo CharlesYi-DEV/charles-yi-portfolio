@@ -11,7 +11,7 @@
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" sizes="180x180">
   <link rel="preload" href="./assets/fonts/ChicagoKare-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./styles.css">
-  <script src="./app.js" defer></script>
+  <script src="./app.js" type="module"></script>
 </head>
 <body>
   <a class="skip-link" href="#desktop">Skip to portfolio</a>
@@ -25,7 +25,7 @@
     <div class="menu system-menu"><button class="brand-menu menu-toggle" aria-expanded="false" aria-label="System menu"><svg class="rainbow-mark" viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true"><path fill="#111" d="M4 1h8v2h2v10h-2v2H4v-2H2V3h2z"/><path fill="#47b846" d="M4 2h8v2H4z"/><path fill="#ffe900" d="M3 4h10v2H3z"/><path fill="#ff8a00" d="M3 6h10v2H3z"/><path fill="#ed3024" d="M3 8h10v2H3z"/><path fill="#a74999" d="M3 10h10v2H3z"/><path fill="#2a86d3" d="M4 12h8v2H4z"/></svg></button><div class="dropdown" hidden><button data-open="welcome">About This Researcher</button><hr><button data-open="panels">Control Panels</button><button data-open="sherlock">Sherlock</button><button data-open="scrapbook">Scrapbook</button><button data-open="note">Stickies</button></div></div>
     <strong class="finder-name">Charles Yi</strong>
     <nav aria-label="Desktop menus">
-      <div class="menu"><button class="menu-toggle" aria-expanded="false">File</button><div class="dropdown" hidden><button data-open="sherlock">Find with Sherlock…</button><button data-open="scrapbook">Open Scrapbook</button><hr><button data-open="welcome">Open welcome</button><button data-open="research">Open My Work</button><button data-open="resume">Open résumé</button><hr><button data-action="close">Close active window</button></div></div>
+      <div class="menu"><button class="menu-toggle" aria-expanded="false">File</button><div class="dropdown" hidden><button data-open="sherlock">Find with Sherlock…</button><button data-open="scrapbook">Open Scrapbook</button><hr><button data-open="welcome">Open welcome</button><button data-open="research">Open My Work</button><button data-open="resume">Open résumé</button><button data-open="blog">Open Blog</button><hr><button data-action="close">Close active window</button></div></div>
       <div class="menu"><button class="menu-toggle" aria-expanded="false">View</button><div class="dropdown" hidden><button data-open="panels">Control Panels…</button><button data-action="tidy">Arrange windows</button><button data-action="wallpaper">Change desktop colour</button><hr><button data-action="motion" id="motion-toggle" aria-pressed="true">Opening animations: on</button><button data-action="boot">Replay startup</button><button data-action="sleep">Sleep…</button></div></div>
       <div class="menu"><button class="menu-toggle" aria-expanded="false">Window</button><div class="dropdown window-list-menu" hidden><div id="open-window-list"></div><hr><button data-open="note">Show field note</button></div></div>
       <div class="menu"><button class="menu-toggle" aria-expanded="false">Help</button><div class="dropdown" hidden><button data-open="help">Using this desktop</button></div></div>
