@@ -78,7 +78,7 @@ Sherlock channels and the live Window menu take inspiration from the Mac OS 9 re
 
 The Blog desktop icon opens a Chicago-styled reader with search, reading time, images, refresh, and links to the standalone articles. It reads public `feed.json` from the separate [Hexo + Cactus blog](https://github.com/CharlesYi-DEV/charles-yi-blog), so publishing posts does not require rebuilding this portfolio. The last successful feed is saved locally for reading when the connection fails. Article HTML is rebuilt with a semantic allowlist; feed scripts, styling, forms, and event handlers are discarded.
 
-The public blog URL is configured by `BLOG_HOME` in `blog-reader.js`. Update it when attaching a custom domain. To run the reader’s feed validation, HTML sanitization, search/navigation, and offline tests:
+The public blog lives at https://blog.charlesyi.net/. Its URL is configured by `BLOG_HOME` in `blog-reader.js`. To run the reader’s feed validation, HTML sanitization, search/navigation, and offline tests:
 
 ```sh
 npm ci

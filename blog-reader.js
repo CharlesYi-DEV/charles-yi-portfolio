@@ -1,4 +1,4 @@
-export const BLOG_HOME = 'https://charlesyi-dev.github.io/charles-yi-blog/';
+export const BLOG_HOME = 'https://blog.charlesyi.net/';
 const FEED_URL = new URL('feed.json', BLOG_HOME).href;
 const CACHE_KEY = 'charles-blog-v1';
 const MAX_FEED_SIZE = 2_000_000;
