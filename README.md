@@ -86,3 +86,12 @@ npm test
 ```
 
 These development dependencies are not needed by the static production build.
+
+## More classic desktop details
+
+- **Balloon Help:** Help → Show Balloon Help enables rounded explanation balloons on pointer hover and keyboard focus. Escape dismisses a balloon before closing a window. The setting is remembered locally.
+- **Pop-up folders:** My Work, Blog, and Scrapbook have bottom-edge tabs. Click to open upwards or tuck away; folder state and loaded articles survive tucking. Drag a folder title bar into the bottom 75 pixels to tuck it, or use the title-bar tab button / context menu. The tab button in an open pop-up returns it to a normal window and removes its tab. On narrow screens, folders open as stacked windows with tap controls.
+- **Software Update:** the system menu opens a news panel with the five newest posts from the validated blog feed, a manual refresh, offline cache fallback, and dated project milestones. Posts open in the built-in Blog app. This does not install software.
+- **Hackathon:** a desktop app reserved for future hackathon projects, currently labelled “Under deployment”.
+
+`software-update.js` is included in the static build and local server. `npm test` covers folder lifecycle, accessible help dismissal, feed loading and offline fallback alongside the existing blog-reader checks.

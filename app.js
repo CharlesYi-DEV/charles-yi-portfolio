@@ -1,4 +1,5 @@
 import { BlogReader } from './blog-reader.js';
+import { SoftwareUpdate } from './software-update.js';
 const $ = (selector, root = document) => root.querySelector(selector);
 const desktop = $('#desktop');
 const windows = $('#windows');
@@ -15,11 +16,13 @@ let bootTimer = null;
 let bootFocus = null;
 let inspectedApp = 'welcome';
 const storageKey = 'charles-desktop-v1';
-let preferences = { wallpaper: 0, motion: true, largeText: false, saved: [] };
+let preferences = { wallpaper: 0, motion: true, largeText: false, saved: [], balloons: false, tabs: ['research', 'blog', 'scrapbook'] };
 let storageAvailable = true;
 try {
   const stored = JSON.parse(localStorage.getItem(storageKey) || 'null');
   if (stored && typeof stored === 'object') preferences = {
+    balloons: stored.balloons === true,
+    tabs: Array.isArray(stored.tabs) ? [...new Set(stored.tabs)].filter(id => ['research', 'blog', 'scrapbook'].includes(id)) : ['research', 'blog', 'scrapbook'],
     wallpaper: [0, 1, 2].includes(stored.wallpaper) ? stored.wallpaper : 0,
     motion: stored.motion !== false,
     largeText: stored.largeText === true,
@@ -55,10 +58,12 @@ function icon(type, className = '') {
     contact: `<path fill="#000" d="M2 7h28v21H2z"/><path fill="#ddd" d="M3 8h26v19H3z"/><path fill="#fff" d="M3 8h26v2h-2v2h-3v2h-3v2h-3v2h-4v-2h-3v-2H8v-2H5v-2H3z"/><path fill="#555" d="M3 10h2v2h3v2h3v2h3v2h4v-2h3v-2h3v-2h3v-2h2v1h-1v2h-3v2h-3v2h-3v2h-6v-2h-3v-2H7v-2H4v-2H3zM3 25h2v-2h3v-2h3v-2h2v1h-1v2H9v2H6v2H3zM20 19h2v2h3v2h3v2h1v1h-3v-2h-3v-2h-3z"/><path fill="#a00" d="M23 4h7v5h-7z"/><path fill="#ff5b00" d="M24 5h5v3h-5z"/>`,
     about: `<path fill="#111" d="M6 2h20v28H6z"/><path fill="#ddd" d="M7 3h18v26H7z"/><path fill="#fff" d="M8 4h16v12H8z"/><path fill="#5555bd" d="M9 5h14v10H9z"/><path fill="#ffe4b4" d="M13 6h6v6h-6z"/><path fill="#000" d="M13 6h6v2h-6z"/><path fill="#e53" d="M11 13h10v2H11z"/><path fill="#000" d="M10 19h12v1H10zM10 22h12v1H10zM10 25h8v1h-8z"/>`
   };
-  return `<svg class="pixel-icon ${className}" viewBox="0 0 32 32" width="32" height="32" shape-rendering="crispEdges" aria-hidden="true">${type === 'future' ? drawings.research.replaceAll('#9292ed', '#d6b545').replaceAll('#c0c0ff', '#ffe794').replaceAll('#5757af', '#9d7b16').replaceAll('#ececff', '#fff5c2') : drawings[type] || drawings.resume}</svg>`;
+  return `<svg class="pixel-icon ${className}" viewBox="0 0 32 32" width="32" height="32" shape-rendering="crispEdges" aria-hidden="true">${type === 'future' ? drawings.research.replaceAll('#9292ed', '#d6b545').replaceAll('#c0c0ff', '#ffe794').replaceAll('#5757af', '#9d7b16').replaceAll('#ececff', '#fff5c2') : (type === 'hackathon' ? drawings.computer : drawings[type]) || drawings.resume}</svg>`;
 }
 
 const contents = {
+  hackathon: () => `<div class="document"><div class="utility-banner">${icon('computer')}<div><h1>Hackathon</h1></div></div><p class="deployment-stamp">Under deployment</p><p class="lede">A home for my hackathon projects.</p><p>I’m preparing this space to share what I build, how it works, and what I learn along the way.</p><div class="document-note">Project details and demos will appear here when they’re ready.</div><button class="classic-button" data-open="research">Explore my current work</button></div>`,
+  updates: () => `<div class="software-update"></div>`,
   blog: () => `<div class="blog-app" aria-label="Charles Yi’s blog reader"></div>`,
   welcome: () => `<div class="system-banner">${icon('computer')}<div><h1>Charles Yi</h1><span>Data science · Language · Reliable AI</span></div></div>
     <div class="system-info"><div><b>Study:</b><span>Master of Data Science</span></div><div><b>University:</b><span>Monash University</span></div><div><b>Interests:</b><span>Language, sound & reliable AI</span></div></div>
@@ -76,11 +81,13 @@ const contents = {
   evaluation: () => `<div class="document"><span class="eyebrow">EXPERIENCE NOTES / 03</span><h1>Beyond a plausible answer.</h1><p class="lede">An answer can sound right and still miss the point.</p><div class="document-note">RWS · Data Service Specialist · Part-time<br>August 2026–present</div><p>My work includes evaluating AI-generated text for factual accuracy, relevance, and Mandarin cultural appropriateness, alongside data collection, labelling, and annotation for model assessment and localisation.</p><h2>Three questions I bring to evaluation</h2><ol class="questions"><li>Is the answer supported by evidence?</li><li>Does it address what was actually asked?</li><li>Does it make sense in the reader’s cultural context?</li></ol><p>This experience connects to my wider interest in reliable AI systems: understanding the limits of an output, alongside its usefulness.</p></div>`,
   resume: () => `<div class="document"><span class="eyebrow">CURRICULUM VITAE / SELECTED EXPERIENCE</span><h1>Charles Yi</h1><p class="lede">Data science · Language · Reliable AI</p><h2>Education</h2><div class="resume-entry"><strong>Master of Data Science</strong><span>2025–present</span><p>Monash University · Expected December 2026</p></div><div class="resume-entry"><strong>BEng, Computer Science and Technology</strong><span>2019–2024</span><p>Dongguan University of Technology</p></div><h2>Experience</h2><div class="resume-entry"><strong>Data Service Specialist · RWS</strong><span>2026–present</span><p>AI evaluation, annotation, and localisation · Part-time</p></div><div class="resume-entry"><strong>Technical Sales Engineer</strong><span>2024</span><p>Dongguan Songhu Plastic Machinery Co Ltd</p></div><div class="resume-entry"><strong>Co-Founder · CYX Cosmetics Store</strong><span>2021–2026</span><p>Customer acquisition, content, and commercial performance</p></div><h2>Technical superpowers</h2><p><b>Data:</b> Python, SQL, PostgreSQL, pandas, data validation, taxonomy mapping, evidence traceability.</p><p><b>ML:</b> scikit-learn, TF-IDF, logistic regression, sentence embeddings, SVMs, Keras, held-out evaluation.</p><p><b>Audio & systems:</b> librosa, MFCC extraction, Kivy, Docker, cloud deployment.</p><button class="classic-button" data-open="contact">Get in touch ↗</button></div>`,
   contact: () => `<div class="document contact-document">${icon('contact')}<span class="eyebrow">LET’S COMPARE NOTES</span><h1>Say hello.</h1><p class="lede">Have a research question, a project idea, or a different way of looking at a problem?</p><a class="contact-link" href="mailto:charles.yi@msn.com">charles.yi@msn.com ↗</a><div class="button-row"><a class="classic-button" href="https://github.com/CharlesYi-DEV" target="_blank" rel="noopener noreferrer">View my GitHub ↗</a><a class="classic-button" href="https://www.linkedin.com/in/charlesyi-dev/" target="_blank" rel="noopener noreferrer">Find me on LinkedIn ↗</a></div><p class="muted">UTC+8</p></div>`,
-  help: () => `<div class="document"><span class="eyebrow">A QUICK ORIENTATION</span><h1>Welcome to my desktop.</h1><ul><li>Click or tap an icon once to open it. Keyboard users can Tab to an icon and press Enter.</li><li>Drag a striped title bar to move a window. The square at the left closes it; the square at the right expands it.</li><li>Use the File menu to reopen windows, or View → Arrange windows to reset their positions.</li><li>On narrow screens, windows stack vertically. Opening an application scrolls to it.</li><li>Right-click the desktop for shortcuts and display settings. Right-click an icon or project for Open and Get Info, or a window for its controls. Shift+F10 opens the same menu from the keyboard; use arrow keys to choose an item and Escape to dismiss it. Selected text and links keep the browser’s normal menu.</li><li>Press Escape to close a menu or the active window.</li></ul><h2>Desktop extras</h2><ul><li>Blog loads my writing from GitHub Pages. Open a post to read it here, or use Open blog for the standalone site. Refresh checks for new writing; saved posts remain readable if the connection fails.</li><li>Sherlock searches this portfolio by topic. Use File → Find or Ctrl/Command+Shift+F.</li><li>Keep projects in Scrapbook using the button in a project or its right-click menu. Saved projects and appearance preferences stay in this browser.</li><li>Control Panels changes the wallpaper, reading size, and opening animations.</li><li>The Window menu lists every open window. Double-click a title bar or use its roll-up button to tuck a window away.</li><li>View → Sleep starts a starfield. Click, tap, or press any key to return.</li></ul><h2>About the design</h2><p>A personal tribute to the tactile, curious world of classic Macintosh desktops, inspired by the Platinum interface of <a href="https://en.wikipedia.org/wiki/Mac_OS_9" target="_blank" rel="noopener noreferrer">Mac OS 9</a>. The recessed beige CRT frame also takes inspiration from <a href="https://taoofmac.com/space/reviews/2025/11/24/1900" target="_blank" rel="noopener noreferrer">the Maclock</a>. Original interface artwork; built for the modern web.</p><p>View → Replay startup runs the short boot sequence. View → Opening animations turns the launch effects on or off; your system’s reduced-motion preference is respected. The display uses the available browser space. Expand an individual document with the square at the right of its title bar.</p><p>The My Work folder contains current experience and selected projects. In Progress describes research still under development; planned evaluation is distinguished from completed computational work.</p></div>`,
-  future: () => `<div class="document"><span class="eyebrow">IN DEVELOPMENT / RESEARCH PROJECT</span><h1>MASCO–ESCO</h1><p class="lede">Building a reproducible bridge between Malaysian occupations and European occupation and skills classifications.</p><div class="document-note"><b>Status: research in progress</b><br>Computational retrieval completed; independent human evaluation is planned.</div><h2>What I’m developing</h2><p>A pipeline to align individual occupations in MASCO 2020 with ESCO 1.2.1, extending the occupation-mapping questions explored in ReRouteHer. The study compares lexical, dense, hybrid, and reranked retrieval, with attention to occupational scope and Malaysian terminology.</p><h2>Work completed so far</h2><ul><li>Automated retrieval across 6,620 extracted MASCO occupations against 3,039 ESCO occupations.</li><li>Initial Qwen3 reranking for a 330-occupation sample.</li><li>A research proposal for independently evaluating the candidate mappings.</li></ul><h2>What comes next</h2><p>The proposed evaluation covers 150 occupations, plus 10 separate calibration occupations. Two reviewers would assess candidates independently, followed by a separate adjudicator. Reviewer availability and the evaluation protocol still need to be confirmed.</p><p>Planned outputs include a documented evaluation reference set, reproducible comparisons, and analysis of ambiguous, broader, and narrower occupation matches.</p><div class="document-note">This is ongoing research, not a published or fully human-validated national crosswalk. Retrieval completion does not establish mapping accuracy.</div><a class="classic-button" href="https://github.com/CharlesYi-DEV/masco-esco-crosswalk" target="_blank" rel="noopener noreferrer">View project repository</a><p class="muted">Project status based on notes dated 27 October 2026.</p></div>`
+  help: () => `<div class="document"><span class="eyebrow">A QUICK ORIENTATION</span><h1>Welcome to my desktop.</h1><ul><li>Click or tap an icon once to open it. Keyboard users can Tab to an icon and press Enter.</li><li>Drag a striped title bar to move a window. The square at the left closes it; the square at the right expands it.</li><li>Use the File menu to reopen windows, or View → Arrange windows to reset their positions.</li><li>On narrow screens, windows stack vertically. Opening an application scrolls to it.</li><li>Right-click the desktop for shortcuts and display settings. Right-click an icon or project for Open and Get Info, or a window for its controls. Shift+F10 opens the same menu from the keyboard; use arrow keys to choose an item and Escape to dismiss it. Selected text and links keep the browser’s normal menu.</li><li>Press Escape to close a menu or the active window.</li></ul><h2>Desktop extras</h2><ul><li>Help → Show Balloon Help explains controls when you hover or focus them. Escape dismisses a balloon.</li><li>Click a bottom folder tab to open it upwards; click again to tuck it away. Drag My Work, Blog, or Scrapbook to the bottom edge to make a tab, or use the title-bar tab button. The same button returns a pop-up to a normal window.</li><li>Software Update checks for new blog posts and shows dated project milestones. It opens writing here, without installing anything.</li><li>Blog loads my writing from Charles’s Blog. Open a post to read it here, or use Open blog for the standalone site. Refresh checks for new writing; saved posts remain readable if the connection fails.</li><li>Sherlock searches this portfolio by topic. Use File → Find or Ctrl/Command+Shift+F.</li><li>Keep projects in Scrapbook using the button in a project or its right-click menu. Saved projects and appearance preferences stay in this browser.</li><li>Control Panels changes the wallpaper, reading size, and opening animations.</li><li>The Window menu lists every open window. Double-click a title bar or use its roll-up button to tuck a window away.</li><li>View → Sleep starts a starfield. Click, tap, or press any key to return.</li></ul><h2>About the design</h2><p>A personal tribute to the tactile, curious world of classic Macintosh desktops, inspired by the Platinum interface of <a href="https://en.wikipedia.org/wiki/Mac_OS_9" target="_blank" rel="noopener noreferrer">Mac OS 9</a>. The recessed beige CRT frame also takes inspiration from <a href="https://taoofmac.com/space/reviews/2025/11/24/1900" target="_blank" rel="noopener noreferrer">the Maclock</a>. Original interface artwork; built for the modern web.</p><p>View → Replay startup runs the short boot sequence. View → Opening animations turns the launch effects on or off; your system’s reduced-motion preference is respected. The display uses the available browser space. Expand an individual document with the square at the right of its title bar.</p><p>The My Work folder contains current experience and selected projects. In Progress describes research still under development; planned evaluation is distinguished from completed computational work.</p></div>`,
+  future: () => `<div class="document"><span class="eyebrow">IN DEVELOPMENT / RESEARCH PROJECT</span><h1>MASCO–ESCO</h1><p class="lede">Building a reproducible bridge between Malaysian occupations and European occupation and skills classifications.</p><div class="document-note"><b>Status: research in progress</b><br>Computational retrieval completed; independent human evaluation is planned.</div><h2>What I’m developing</h2><p>A pipeline to align individual occupations in MASCO 2020 with ESCO 1.2.1, extending the occupation-mapping questions explored in ReRouteHer. The study compares lexical, dense, hybrid, and reranked retrieval, with attention to occupational scope and Malaysian terminology.</p><h2>Work completed so far</h2><ul><li>Automated retrieval across 6,620 extracted MASCO occupations against 3,039 ESCO occupations.</li><li>Initial Qwen3 reranking for a 330-occupation sample.</li><li>A research proposal for independently evaluating the candidate mappings.</li></ul><h2>What comes next</h2><p>The annotation platform is set up for 15 calibration occupations and 150 evaluation occupations. Three annotators will review the same occupations independently, followed by adjudication. Human review is still ahead.</p><p>Planned outputs include a documented evaluation reference set, reproducible comparisons, and analysis of ambiguous, broader, and narrower occupation matches.</p><div class="document-note">This is ongoing research, not a published or fully human-validated national crosswalk. Retrieval completion does not establish mapping accuracy.</div><a class="classic-button" href="https://github.com/CharlesYi-DEV/masco-esco-crosswalk" target="_blank" rel="noopener noreferrer">View project repository</a><p class="muted">Project status: 28 October 2026.</p></div>`
 };
 
 const config = {
+  hackathon: {title: 'Hackathon — Under deployment', width: 560, x: .23, y: 50},
+  updates: { title: 'Software Update', width: 650, x: .19, y: 32 },
   blog: { title: "Charles's Blog", width: 740, x: .16, y: 30 },
   sherlock: { title: 'Sherlock — Search My Desktop', width: 680, x: .14, y: 35 },
   panels: { title: 'Control Panels — Appearance', width: 520, x: .27, y: 45 },
@@ -102,7 +109,9 @@ const config = {
 
 // Context-menu content describes existing portfolio items, not simulated files.
 const itemInfo = {
-  blog: { name: 'Blog', kind: 'Online notebook', status: 'From GitHub Pages', detail: 'Notes on data, language, and building things. Read the latest posts inside this desktop.' },
+  hackathon: {name: 'Hackathon', kind: 'Project showcase', status: 'Under deployment', detail: 'A future home for Charles’s hackathon projects, demos, and build notes.'},
+  updates: {name: 'Software Update', kind: 'Portfolio news', status: 'Latest writing and milestones', detail: 'Check Charles’s blog for new writing and see recent project milestones.'},
+  blog: { name: 'Blog', kind: 'Online notebook', status: 'From Charles’s Blog', detail: 'Notes on data, language, and building things. Read the latest posts inside this desktop.' },
   welcome: { name: 'Charles HD', kind: 'Personal portfolio', status: 'Current', detail: 'Charles Yi’s introduction, education, and research interests.' },
   research: { name: 'My Work', kind: 'Project folder · 4 items', status: 'Current and selected work', detail: 'AI evaluation, ReRouteHer, sound detection, and MASCO–ESCO research.' },
   future: { name: 'MASCO–ESCO', kind: 'Research project', status: 'In development', detail: 'Occupation alignment research. Computational retrieval is complete; independent human evaluation is planned.' },
@@ -148,6 +157,11 @@ contents.panels = () => `<div class="preferences-app"><div class="utility-banner
 contents.scrapbook = () => `<div class="scrapbook-app"><div class="utility-banner">${icon('scrapbook')}<div><h1>Scrapbook</h1><p>A reading list from Charles’s work.</p></div></div><p id="saved-status" class="utility-status" role="status"></p><div id="saved-items"></div><div class="window-footer">${storageAvailable ? 'Saved on this browser only' : 'Available for this visit only'}</div></div>`;
 
 function initializeApplication(id, win) {
+  if (id === 'updates') win.updater = new SoftwareUpdate($('.software-update', win), (post, posts) => {
+    openWindow('blog');
+    const reader = $('[data-id="blog"]', windows).blogReader;
+    reader.posts = posts; reader.hasData = true; reader.selected = post.id; reader.render();
+  });
   if (id === 'blog') win.blogReader = new BlogReader($('.blog-app', win));
   if (projectIds.includes(id)) {
     const bar = document.createElement('div');
@@ -225,7 +239,7 @@ function syncWindowMenu() {
     const button = document.createElement('button');
     button.dataset.open = win.dataset.id;
     const isActive = win.dataset.id === activeId;
-    button.textContent = `${isActive ? '✓ ' : ''}${config[win.dataset.id].title}${win.classList.contains('shaded') ? ' (rolled up)' : ''}`;
+    button.textContent = `${isActive ? '✓ ' : ''}${config[win.dataset.id].title}${win.hidden ? ' (in tab)' : win.classList.contains('shaded') ? ' (rolled up)' : ''}`;
     if (isActive) button.setAttribute('aria-current', 'true');
     list.append(button);
   });
@@ -297,8 +311,118 @@ document.addEventListener('click', event => {
   }
 });
 
-const apps = [['welcome', 'Charles HD'], ['research', 'My Work'], ['future', 'In Progress'], ['resume', 'Résumé'], ['contact', 'Contact'], ['blog', 'Blog'], ['sherlock', 'Sherlock']];
+const apps = [['welcome', 'Charles HD'], ['research', 'My Work'], ['future', 'In Progress'], ['resume', 'Résumé'], ['contact', 'Contact'], ['blog', 'Blog'], ['hackathon', 'Hackathon'], ['sherlock', 'Sherlock']];
 $('#desktop-icons').innerHTML = apps.map(([id, label]) => `<button class="desktop-icon" data-open="${id}">${icon(id)}<span>${label}</span></button>`).join('');
+
+// Classic pop-up folders keep their contents alive while tucked away.
+const folderIds = ['research', 'blog', 'scrapbook'];
+const folderNames = {research: 'My Work', blog: 'Blog', scrapbook: 'Scrapbook'};
+function renderFolderTabs() {
+  $('#folder-tabs').innerHTML = preferences.tabs.map(id => `<button class="folder-tab" data-folder-tab="${id}" aria-expanded="false" data-balloon="Open ${folderNames[id]} above this tab. Click again to tuck it away.">${icon(id)}<span>${folderNames[id]}</span></button>`).join('');
+  syncFolderTabs();
+}
+function syncFolderTabs() {
+  document.querySelectorAll('[data-folder-tab]').forEach(button => {
+    const win = $(`[data-id="${button.dataset.folderTab}"]`, windows);
+    button.setAttribute('aria-expanded', String(Boolean(win && !win.hidden && win.classList.contains('folder-popup'))));
+  });
+}
+function tuckFolder(id) {
+  if (!folderIds.includes(id)) return;
+  if (!preferences.tabs.includes(id)) { preferences.tabs.push(id); persistPreferences(); renderFolderTabs(); }
+  const win = $(`[data-id="${id}"]`, windows);
+  win.classList.remove('maximized', 'shaded');
+  win.classList.add('folder-popup');
+  win.hidden = true;
+  $('.window-tab', win).setAttribute('aria-label', `Return ${folderNames[id]} to desktop`);
+  $('.window-tab', win).dataset.balloon = 'Return this pop-up folder to a normal desktop window.';
+  syncFolderTabs(); syncWindowMenu();
+  $(`[data-folder-tab="${id}"]`).focus({preventScroll: true});
+  $('#announcement').textContent = `${folderNames[id]} tucked into a bottom tab`;
+}
+function toggleFolderTab(id) {
+  const win = $(`[data-id="${id}"]`, windows);
+  if (win && !win.hidden && win.classList.contains('folder-popup')) { tuckFolder(id); return; }
+  // Only one folder rises out of the tab row at a time.
+  windows.querySelectorAll('.folder-popup').forEach(other => other.hidden = true);
+  openWindow(id, $(`[data-folder-tab="${id}"]`));
+  const opened = $(`[data-id="${id}"]`, windows);
+  opened.classList.remove('maximized');
+  opened.classList.add('folder-popup');
+  const tab = $(`[data-folder-tab="${id}"]`);
+  opened.style.left = `${Math.max(8, Math.min(tab.offsetLeft, desktop.clientWidth - opened.offsetWidth - 8))}px`;
+  $('.window-tab', opened).setAttribute('aria-label', `Return ${folderNames[id]} to desktop`);
+  $('.window-tab', opened).dataset.balloon = 'Return this pop-up folder to a normal desktop window.';
+  syncFolderTabs(); syncWindowMenu();
+}
+function toggleFolderPin(win) {
+  const id = win.dataset.id;
+  if (!win.classList.contains('folder-popup')) { tuckFolder(id); return; }
+  win.classList.remove('folder-popup');
+  preferences.tabs = preferences.tabs.filter(value => value !== id);
+  persistPreferences(); renderFolderTabs(); place(win, id); focusWindow(win, true);
+  $('.window-tab', win).setAttribute('aria-label', `Tuck ${folderNames[id]} into a bottom tab`);
+  $('.window-tab', win).dataset.balloon = 'Tuck this folder into a tab at the bottom of the desktop.';
+}
+
+// Balloon Help is opt-in and describes controls without intercepting clicks.
+const balloon = document.createElement('div');
+balloon.id = 'balloon-help'; balloon.className = 'balloon-help';
+balloon.setAttribute('role', 'tooltip'); balloon.hidden = true;
+document.body.append(balloon);
+let balloonTarget = null, balloonTimer;
+function syncBalloonToggle() {
+  $('#balloon-toggle').textContent = preferences.balloons ? 'Hide Balloon Help' : 'Show Balloon Help';
+  $('#balloon-toggle').setAttribute('aria-pressed', String(preferences.balloons));
+  if (!preferences.balloons) hideBalloon();
+}
+function helpText(target) {
+  if (target.dataset.balloon) return target.dataset.balloon;
+  if (target.dataset.open) return itemInfo[target.dataset.open]?.detail || `Open ${config[target.dataset.open]?.title || 'this item'}.`;
+  if (target.matches('.menu-toggle')) return `Open the ${target.getAttribute('aria-label') || target.textContent.trim()} menu.`;
+  if (target.dataset.close) return 'Close this window. You can open it again from the desktop or menu.';
+  if (target.dataset.shade) return 'Roll this window up to its title bar, or unroll it.';
+  if (target.dataset.zoom) return 'Expand this window to read comfortably, or restore its size.';
+  if (target.dataset.save) return 'Keep this project in your Scrapbook, or remove it from your saved list.';
+  if (target.dataset.action === 'balloons') return 'Turn these explanation balloons on or off.';
+  return target.getAttribute('aria-label') || target.textContent.trim().replace(/\s+/g, ' ').slice(0, 180);
+}
+function hideBalloon() {
+  clearTimeout(balloonTimer);
+  if (balloonTarget) {
+    const ids = (balloonTarget.getAttribute('aria-describedby') || '').split(' ').filter(id => id && id !== balloon.id);
+    if (ids.length) balloonTarget.setAttribute('aria-describedby', ids.join(' ')); else balloonTarget.removeAttribute('aria-describedby');
+  }
+  balloonTarget = null; balloon.hidden = true;
+}
+function showBalloon(target) {
+  hideBalloon();
+  if (!preferences.balloons || screenOS.inert || !target.isConnected) return;
+  const text = helpText(target); if (!text) return;
+  balloonTarget = target; balloon.textContent = text;
+  target.setAttribute('aria-describedby', [target.getAttribute('aria-describedby'), balloon.id].filter(Boolean).join(' '));
+  const screen = screenStage.getBoundingClientRect(), anchor = target.getBoundingClientRect();
+  balloon.style.maxWidth = `${Math.min(310, screen.width - 24)}px`;
+  balloon.hidden = false;
+  const below = anchor.bottom + 14 + balloon.offsetHeight < screen.bottom;
+  balloon.classList.toggle('above', !below);
+  const left = Math.max(screen.left + 10, Math.min(anchor.left, screen.right - balloon.offsetWidth - 10));
+  balloon.style.left = `${left}px`;
+  balloon.style.top = `${Math.max(screen.top + 10, below ? anchor.bottom + 12 : anchor.top - balloon.offsetHeight - 12)}px`;
+  balloon.style.setProperty('--tail-left', `${Math.max(16, Math.min(anchor.left + anchor.width / 2 - left, balloon.offsetWidth - 24))}px`);
+}
+function helpControl(target) { return target.closest('button, a, input, [data-balloon]'); }
+screenOS.addEventListener('pointerover', event => {
+  if (event.pointerType === 'touch') return;
+  const target = helpControl(event.target); if (!target || target.contains(event.relatedTarget)) return;
+  hideBalloon(); if (preferences.balloons) balloonTimer = setTimeout(() => showBalloon(target), 450);
+});
+screenOS.addEventListener('pointerout', event => { if (balloonTarget && !balloonTarget.contains(event.relatedTarget)) hideBalloon(); else clearTimeout(balloonTimer); });
+screenOS.addEventListener('focusin', event => { const target = helpControl(event.target); if (target) showBalloon(target); });
+screenOS.addEventListener('focusout', hideBalloon);
+document.addEventListener('pointerdown', hideBalloon);
+document.addEventListener('scroll', hideBalloon, true);
+window.addEventListener('blur', hideBalloon);
 
 function mobile() { return screenStage.clientWidth < 980; }
 function homeGeometry(id) {
@@ -314,7 +438,11 @@ function homeGeometry(id) {
     top: id === 'research' ? 190 : c.y };
 }
 function place(win, id) {
-  win.classList.remove('maximized', 'shaded');
+  win.classList.remove('maximized', 'shaded', 'folder-popup');
+  if (folderIds.includes(id)) {
+    $('.window-tab', win).setAttribute('aria-label', `Tuck ${folderNames[id]} into a bottom tab`);
+    $('.window-tab', win).dataset.balloon = 'Tuck this folder into a tab at the bottom of the desktop.';
+  }
   syncShadeControl(win);
   const geometry = homeGeometry(id);
   win.style.width = `${geometry.width}px`;
@@ -326,6 +454,7 @@ function place(win, id) {
 function focusWindow(win, focusControl = false) {
   windows.querySelectorAll('.window').forEach(w => w.classList.toggle('active', w === win));
   win.style.zIndex = ++highestZ;
+  syncFolderTabs();
   activeId = win.dataset.id;
   syncWindowMenu();
   if (focusControl) $('.window-title', win).focus({ preventScroll: true });
@@ -338,12 +467,13 @@ function openWindow(id, trigger, initial = false) {
     win.className = `window ${id === 'note' ? 'note-window' : ''}`;
     win.dataset.id = id;
     win.setAttribute('aria-labelledby', `title-${id}`);
-    win.innerHTML = `<div class="titlebar"><button class="window-close" aria-label="Close ${config[id].title}" data-close="${id}"></button><h2 class="window-title" id="title-${id}" tabindex="-1">${config[id].title}</h2><button class="window-shade" aria-label="Roll up ${config[id].title}" aria-pressed="false" data-shade="${id}"></button><button class="window-zoom" aria-label="Expand ${config[id].title}" aria-pressed="false" data-zoom="${id}"></button></div><div class="window-content">${contents[id]()}</div><div class="resize-decoration" aria-hidden="true"></div>`;
+    win.innerHTML = `<div class="titlebar"><button class="window-close" aria-label="Close ${config[id].title}" data-close="${id}"></button><h2 class="window-title" id="title-${id}" tabindex="-1">${config[id].title}</h2>${folderIds.includes(id) ? `<button class="window-tab" data-pin="${id}" aria-label="Tuck ${folderNames[id]} into a bottom tab" data-balloon="Tuck this folder into a tab at the bottom of the desktop.">▱</button>` : ''}<button class="window-shade" aria-label="Roll up ${config[id].title}" aria-pressed="false" data-shade="${id}"></button><button class="window-zoom" aria-label="Expand ${config[id].title}" aria-pressed="false" data-zoom="${id}"></button></div><div class="window-content">${contents[id]()}</div><div class="resize-decoration" aria-hidden="true"></div>`;
     windows.append(win);
     place(win, id);
     enableDrag(win);
     initializeApplication(id, win);
   }
+  win.hidden = false;
   win.classList.remove('shaded');
   syncShadeControl(win);
   if (trigger) openers.set(id, trigger);
@@ -359,9 +489,11 @@ function closeWindow(id) {
   const win = $(`[data-id="${id}"]`, windows);
   if (!win) return;
   win.blogReader?.destroy();
+  win.updater?.destroy();
   win.remove();
   syncWindowMenu();
-  const remaining = [...windows.children].sort((a,b) => Number(b.style.zIndex) - Number(a.style.zIndex));
+  syncFolderTabs();
+  const remaining = [...windows.children].filter(w => !w.hidden).sort((a,b) => Number(b.style.zIndex) - Number(a.style.zIndex));
   if (remaining[0]) focusWindow(remaining[0]);
   const opener = openers.get(id);
   if (opener?.isConnected && !opener.closest('[hidden]')) opener.focus({ preventScroll: true });
@@ -375,15 +507,30 @@ function enableDrag(win) {
     if (mobile() || e.target.closest('button') || win.classList.contains('maximized') || e.button !== 0) return;
     e.preventDefault();
     focusWindow(win);
+    hideBalloon();
+    if (win.classList.contains('folder-popup')) {
+      const oldTop = win.offsetTop;
+      win.classList.remove('folder-popup');
+      win.style.top = `${oldTop}px`;
+      $('.window-tab', win).setAttribute('aria-label', `Tuck ${folderNames[win.dataset.id]} into a bottom tab`);
+      $('.window-tab', win).dataset.balloon = 'Tuck this folder into a tab at the bottom of the desktop.';
+      syncFolderTabs();
+    }
     win.dataset.moved = 'true';
     const startX = e.clientX, startY = e.clientY;
     const left = win.offsetLeft, top = win.offsetTop;
     bar.setPointerCapture(e.pointerId);
     const move = event => {
+      desktop.classList.toggle('tab-drop-ready', folderIds.includes(win.dataset.id) && event.clientY >= desktop.getBoundingClientRect().bottom - 75);
       win.style.left = `${Math.max(0, Math.min(desktop.clientWidth - win.offsetWidth, left + event.clientX - startX))}px`;
       win.style.top = `${Math.max(4, Math.min(desktop.clientHeight - 60, top + event.clientY - startY))}px`;
     };
-    const stop = () => { bar.removeEventListener('pointermove', move); bar.removeEventListener('pointerup', stop); bar.removeEventListener('pointercancel', stop); };
+    const stop = event => {
+      bar.removeEventListener('pointermove', move); bar.removeEventListener('pointerup', stop); bar.removeEventListener('pointercancel', stop);
+      if (bar.hasPointerCapture(e.pointerId)) bar.releasePointerCapture(e.pointerId);
+      desktop.classList.remove('tab-drop-ready');
+      if (event.type === 'pointerup' && folderIds.includes(win.dataset.id) && event.clientY >= desktop.getBoundingClientRect().bottom - 75) tuckFolder(win.dataset.id);
+    };
     bar.addEventListener('pointermove', move);
     bar.addEventListener('pointerup', stop);
     bar.addEventListener('pointercancel', stop);
@@ -502,6 +649,7 @@ function dismissContextMenu(restoreFocus = false) {
 }
 function arrangeWindows() {
   windows.querySelectorAll('.window').forEach(win => {
+    win.hidden = false;
     place(win, win.dataset.id);
     $('.window-zoom', win).setAttribute('aria-pressed', 'false');
   });
@@ -512,6 +660,7 @@ function changeWallpaper() {
   $('#announcement').textContent = `${['Classic purple', 'Teal', 'Graphite'][wallpaper]} desktop`;
 }
 function toggleWindowSize(win) {
+  if (win.classList.contains('folder-popup')) place(win, win.dataset.id);
   win.classList.remove('shaded');
   syncShadeControl(win);
   const expanded = win.classList.toggle('maximized');
@@ -535,6 +684,7 @@ function openContextMenu(target, x, y) {
     title = itemInfo[id].name;
     add('Open', () => launchWindow(id, item));
     add('Get Info', () => showItemInfo(id, item));
+    if (folderIds.includes(id)) add('Make Bottom Tab', () => { openWindow(id); tuckFolder(id); });
     if (projectIds.includes(id)) add(preferences.saved.includes(id) ? 'Remove from Scrapbook' : 'Keep in Scrapbook', () => toggleSaved(id));
   } else if (win) {
     focusWindow(win);
@@ -543,6 +693,7 @@ function openContextMenu(target, x, y) {
     if (!mobile()) add(win.classList.contains('maximized') ? 'Restore Window' : 'Expand Window', () => toggleWindowSize(win));
     add(win.classList.contains('shaded') ? 'Unroll Window' : 'Roll Up Window', () => toggleShade(win));
     if (projectIds.includes(win.dataset.id)) add(preferences.saved.includes(win.dataset.id) ? 'Remove from Scrapbook' : 'Keep in Scrapbook', () => toggleSaved(win.dataset.id));
+    if (folderIds.includes(win.dataset.id)) add(win.classList.contains('folder-popup') ? 'Return to Desktop' : 'Make Bottom Tab', () => toggleFolderPin(win));
     add('Close Window', () => closeWindow(win.dataset.id));
     separator();
     add('Arrange Windows', arrangeWindows);
@@ -553,6 +704,7 @@ function openContextMenu(target, x, y) {
     add('Résumé', () => launchWindow('resume', origin));
     add('Contact', () => launchWindow('contact', origin));
     add('Blog', () => launchWindow('blog', origin));
+    add('Software Update…', () => launchWindow('updates', origin));
     separator();
     add('Arrange Windows', arrangeWindows);
     add('Control Panels', () => launchWindow('panels', origin));
@@ -665,6 +817,11 @@ document.addEventListener('click', e => {
   if (e.target.closest('#context-menu')) return;
   const toggle = e.target.closest('.menu-toggle');
   if (toggle) { const menu = toggle.nextElementSibling; const shouldOpen = menu.hidden; closeMenus(); menu.hidden = !shouldOpen; toggle.setAttribute('aria-expanded', String(shouldOpen)); return; }
+  hideBalloon();
+  const tab = e.target.closest('[data-folder-tab]');
+  if (tab) { toggleFolderTab(tab.dataset.folderTab); return; }
+  const pin = e.target.closest('[data-pin]');
+  if (pin) { toggleFolderPin(pin.closest('.window')); return; }
   const button = e.target.closest('[data-open], [data-close], [data-zoom], [data-shade], [data-action]');
   if (!button) return;
   closeMenus();
@@ -673,6 +830,7 @@ document.addEventListener('click', e => {
   if (button.dataset.shade) toggleShade(button.closest('.window'));
   if (button.dataset.zoom) toggleWindowSize(button.closest('.window'));
   const action = button.dataset.action;
+  if (action === 'balloons') { preferences.balloons = !preferences.balloons; persistPreferences(); syncBalloonToggle(); $('#balloon-toggle').closest('.menu').querySelector('.menu-toggle').focus(); }
   if (action === 'sleep') startSleep(button);
   if (action === 'boot') runBoot(button);
   if (action === 'motion') { setMotion(!motionEnabled); button.closest('.menu')?.querySelector('.menu-toggle').focus(); }
@@ -685,6 +843,7 @@ document.addEventListener('keydown', e => {
   if (!contextMenu.hidden) return;
   if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'f') { e.preventDefault(); launchWindow('sherlock', document.activeElement); return; }
   if (e.key === 'Escape') {
+    if (!balloon.hidden) { hideBalloon(); return; }
     if (bootTimer !== null) { finishBoot(); return; }
     if (pendingLaunch) { cancelLaunch(); $('#announcement').textContent = 'Opening cancelled'; return; }
     const menu = $('.menu-toggle[aria-expanded="true"]');
@@ -692,15 +851,18 @@ document.addEventListener('keydown', e => {
   }
 });
 function updateLayout() {
+  hideBalloon();
   dismissContextMenu();
   document.body.classList.toggle('compact', mobile());
-  if (!mobile()) windows.querySelectorAll('.window:not(.maximized)').forEach(win => {
+  if (!mobile()) windows.querySelectorAll('.window:not(.maximized):not(.folder-popup):not([hidden])').forEach(win => {
     if (win.dataset.moved !== 'true') { const shaded = win.classList.contains('shaded'); place(win, win.dataset.id); if (shaded) { win.classList.add('shaded'); syncShadeControl(win); } return; }
     win.style.width = `${Math.min(config[win.dataset.id].width, desktop.clientWidth - 130)}px`;
     win.style.left = `${Math.max(0, Math.min(win.offsetLeft, desktop.clientWidth - win.offsetWidth))}px`;
     win.style.top = `${Math.max(8, Math.min(win.offsetTop, desktop.clientHeight - win.offsetHeight - 30))}px`;
   });
 }
+renderFolderTabs();
+syncBalloonToggle();
 new ResizeObserver(updateLayout).observe(screenStage);
 updateLayout();
 

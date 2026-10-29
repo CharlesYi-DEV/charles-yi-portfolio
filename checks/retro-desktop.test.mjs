@@ -1,0 +1,62 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {JSDOM} from 'jsdom';
+import {SoftwareUpdate} from '../software-update.js';
+const html = readFileSync(new URL('../index.html', import.meta.url),'utf8');
+const source = readFileSync(new URL('../app.js', import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
+function desktop() {
+  const dom = new JSDOM(html,{url:'https://charlesyi.net',runScripts:'outside-only'});
+  const w=dom.window;
+  w.matchMedia=()=>({matches:false,addEventListener(){}});
+  w.ResizeObserver=class {observe(){}};
+  w.BlogReader=class {constructor(root){this.root=root;} destroy(){this.destroyed=true;}};
+  w.SoftwareUpdate=class {destroy(){}};
+  w.localStorage.setItem('charles-desktop-v1',JSON.stringify({motion:false}));
+  for (const id of ['screen-stage','desktop']) Object.defineProperty(w.document.getElementById(id),'clientWidth',{value:1200});
+  w.eval(source); return dom;
+}
+test('pop-up folders preserve their contents, switch tabs and detach cleanly',()=>{
+  const dom=desktop(), d=dom.window.document;
+  const tab=d.querySelector('[data-folder-tab="blog"]'); tab.click();
+  const win=d.querySelector('[data-id="blog"]'), reader=win.blogReader;
+  assert.equal(win.hidden,false); assert.equal(tab.getAttribute('aria-expanded'),'true');
+  tab.click(); assert.equal(win.hidden,true); assert.equal(reader.destroyed,undefined);
+  tab.click(); assert.equal(win.blogReader,reader);
+  d.querySelector('[data-folder-tab="scrapbook"]').click(); assert.equal(win.hidden,true);
+  tab.click(); win.querySelector('[data-pin]').click();
+  assert.equal(win.hidden,false); assert.equal(win.classList.contains('folder-popup'),false);
+  assert.equal(d.querySelector('[data-folder-tab="blog"]'),null);
+  win.querySelector('[data-pin]').click(); assert.equal(win.hidden,true);
+  assert.ok(JSON.parse(dom.window.localStorage.getItem('charles-desktop-v1')).tabs.includes('blog'));
+  dom.window.close();
+});
+test('Balloon Help can be enabled, reached by focus, and dismissed without closing a window',()=>{
+  const dom=desktop(), d=dom.window.document;
+  d.querySelector('#balloon-toggle').click();
+  d.querySelector('.desktop-icon[data-open="research"]').focus();
+  assert.equal(d.querySelector('#balloon-help').hidden,false);
+  assert.match(d.querySelector('#balloon-help').textContent,/AI evaluation/);
+  d.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  assert.equal(d.querySelector('#balloon-help').hidden,true);
+  assert.ok(d.querySelector('[data-id="welcome"]'));
+  d.querySelector('.desktop-icon[data-open="hackathon"]').click();
+  assert.match(d.querySelector('[data-id="hackathon"]').textContent,/Under deployment/);
+  dom.window.close();
+});
+const settle=()=>new Promise(resolve=>setTimeout(resolve,0));
+test('Software Update reads valid posts, opens the chosen post, and uses saved data offline',async()=>{
+  const dom=new JSDOM('<main></main>',{url:'https://charlesyi.net'});
+  globalThis.document=dom.window.document; globalThis.localStorage=dom.window.localStorage;
+  const post={id:'note',title:'Latest research',date:'2026-10-28T00:00:00Z',url:'https://blog.charlesyi.net/posts/note/',html:'<p>Research.</p>'};
+  globalThis.fetch=async()=>({ok:true,text:async()=>JSON.stringify({version:1,posts:[post]})});
+  let selected;
+  const updater=new SoftwareUpdate(document.querySelector('main'),p=>selected=p);
+  await settle(); assert.match(updater.status.textContent,/1 published post/);
+  document.querySelector('[data-update-post]').click(); assert.equal(selected.id,'note'); updater.destroy();
+  globalThis.fetch=async()=>{throw Error('offline');};
+  const offline=new SoftwareUpdate(document.querySelector('main'),()=>{});
+  await settle(); assert.match(offline.status.textContent,/Saved writing/);
+  assert.equal(document.querySelectorAll('[data-update-post]').length,1);
+  offline.destroy(); dom.window.close();
+});

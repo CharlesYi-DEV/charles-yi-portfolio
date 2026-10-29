@@ -194,3 +194,37 @@ input[type=radio],input[type=checkbox]{accent-color:#000080;width:15px;height:15
 .desktop-icons{max-height:calc(100% - 52px);overflow-y:auto;scrollbar-width:thin}.compact .desktop-icons{max-height:none;overflow:visible;grid-template-columns:repeat(7,1fr)}
 @media(max-width:760px){.compact .desktop-icons{grid-template-columns:repeat(4,1fr)}.blog-article{padding:18px 14px}.blog-article h1{font-size:28px}.blog-toolbar{position:static;padding:10px}.blog-toolbar a{margin-left:0}.blog-post{padding:16px 14px}}
 @media(max-width:420px){.compact .desktop-icons{grid-template-columns:repeat(3,1fr)}}
+
+/* Classic Mac OS pop-up folder tabs sit above the Control Strip. */
+.folder-tabs{position:absolute;bottom:28px;left:8px;right:8px;display:flex;align-items:end;gap:5px;z-index:9990;min-height:34px;pointer-events:none}
+.folder-tab{pointer-events:auto;display:flex;gap:7px;align-items:center;justify-content:center;padding:4px 13px 3px;background:#ccc;border:1px solid #111;border-radius:5px 5px 0 0;box-shadow:inset 1px 1px #fff,inset -1px 0 #777;font:400 18px/24px var(--font-system);min-height:34px}
+.folder-tab .pixel-icon{width:16px;height:16px}
+.folder-tab[aria-expanded=true]{background:#eee;border-bottom-color:#eee;box-shadow:inset 1px 1px #fff,0 -2px #111}
+.folder-tab:hover{background:#eee}
+.tab-drop-ready .folder-tabs{outline:2px dotted #fff;outline-offset:5px;background:#00008055}
+.window.folder-popup{top:auto!important;bottom:65px;max-height:calc(100% - 80px);box-shadow:inset 1px 1px #fff,inset -1px -1px #888,2px -1px #222}
+.window-tab{position:relative;z-index:1;padding:0;background:#ccc;width:18px;min-width:18px;height:16px;border:1px solid #111;box-shadow:inset 1px 1px #fff,inset -1px -1px #888;font:16px/12px var(--font-system)}
+.window:not(.folder-popup){max-height:calc(100% - 78px)}
+.window.maximized{height:calc(100% - 78px)}
+.control-strip{z-index:9991}
+/* White help balloons, black outline and a small speech tail. */
+.balloon-help{position:fixed;z-index:31000;background:#ffffef;color:#111;border:1px solid #000;border-radius:12px;padding:12px 15px;box-shadow:2px 2px #0008;font:400 18px/25px var(--font-system);pointer-events:none;overflow-wrap:anywhere}
+.balloon-help:after{content:'';position:absolute;top:-7px;left:var(--tail-left,24px);width:12px;height:12px;background:#ffffef;border-left:1px solid #000;border-top:1px solid #000;transform:rotate(45deg)}
+.balloon-help.above:after{top:auto;bottom:-7px;transform:rotate(225deg)}
+.software-update{font:400 18px/26px var(--font-system);background:#ddd}
+.update-banner{display:flex;align-items:center;gap:17px;padding:18px;background:#eee;border-bottom:1px solid #888;box-shadow:0 1px #fff}
+.update-banner h1{font:400 28px/34px var(--font-system);margin:0 0 4px}.update-banner p{margin:0;font-size:18px}
+.update-icon{display:grid;place-items:center;background:#fff;border:1px solid #111;box-shadow:inset 1px 1px #fff,inset -2px -2px #999;width:52px;height:52px;color:#333399;font-size:40px}
+.update-controls{display:flex;align-items:center;gap:14px;padding:15px 18px}.update-status{font-size:16px;line-height:22px;color:#333}
+.update-section{font:400 18px/26px var(--font-system);margin:0;padding:4px 18px;border-top:1px solid #888;border-bottom:1px solid #888;background:#ccc;box-shadow:inset 0 1px #fff}
+.update-row{display:flex;flex-direction:column;gap:5px;width:100%;text-align:left;padding:13px 18px;border:0;border-bottom:1px solid #bbb;background:#f5f5f5;font:400 18px/25px var(--font-system)}
+.update-row:hover,.update-row:focus-visible{background:#e8e8f5}.update-row strong{font-size:20px;line-height:27px;font-weight:400}.update-row small,.update-kind{font-size:16px;line-height:22px}.update-kind{color:#555}.update-row small{color:#000080}.update-empty{padding:12px 18px;margin:0}
+.update-progress{margin:0 18px 14px;height:10px;border:1px solid #555;background:#fff;overflow:hidden}.update-progress i{display:block;height:100%;width:100%;background:repeating-linear-gradient(90deg,#5555a4 0 10px,#b0b0dd 10px 20px);animation:update-check 1s steps(8) infinite}
+@keyframes update-check{to{transform:translateX(20px)}}
+.reduced-motion .update-progress i{animation:none}
+.deployment-stamp{display:inline-flex;align-items:center;gap:10px;background:#e8e2c5;border:1px solid #777;box-shadow:inset 1px 1px #fff;padding:7px 12px;font-size:18px}.deployment-stamp:before{content:'';width:12px;height:12px;background:#b99328;border:1px solid #111;box-shadow:inset 1px 1px #ffe58b}
+.compact .folder-tabs{position:sticky;bottom:29px;margin-top:16px;left:auto;right:auto;flex-wrap:wrap;padding:4px 0 0;background:var(--desktop)}
+.compact .folder-tab{flex:1;padding:5px 8px;font-size:16px;gap:5px;min-height:38px}.compact .folder-tab .pixel-icon{display:none}
+.compact .window.folder-popup{position:relative;bottom:auto;top:auto;max-height:none;left:auto!important}
+.compact .window:not(.folder-popup){max-height:none}.compact .update-controls{flex-wrap:wrap}.compact .update-banner{padding:14px;gap:12px}.compact .update-banner h1{font-size:26px}
+.compact .control-strip{position:sticky;bottom:0;width:max-content;max-width:100%;margin-top:0}
