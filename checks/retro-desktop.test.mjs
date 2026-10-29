@@ -83,13 +83,19 @@ test('desktop icon coordinates persist in a cookie, clamp invalid positions and 
   assert.equal(clamped.style.left,'1098px'); assert.equal(clamped.style.top,'0px');
   for(const instance of [dom,restored,invalid]) instance.window.close();
 });
-test('startup opens Blog behind both introduction windows',()=>{
+test('startup keeps the two original windows and exposes resize controls',()=>{
   const dom=desktop(), d=dom.window.document;
-  const blog=d.querySelector('[data-id="blog"]');
-  assert.ok(blog && !blog.hidden && blog.classList.contains('startup-blog'));
-  for (const id of ['welcome','research']) assert.ok(Number(d.querySelector(`[data-id="${id}"]`).style.zIndex)>Number(blog.style.zIndex));
-  d.querySelector('.desktop-icon[data-open="blog"]').click();
-  assert.equal(blog.classList.contains('startup-blog'),false);
-  assert.ok(blog.classList.contains('active'));
+  assert.equal(d.querySelector('[data-id="blog"]'),null);
+  for (const id of ['welcome','research']) assert.ok(d.querySelector(`[data-id="${id}"] .window-resize`));
+  const win=d.querySelector('[data-id="welcome"]');
+  Object.defineProperty(win,'offsetWidth',{get(){return parseFloat(win.style.width)||600;}});
+  Object.defineProperty(win,'offsetHeight',{get(){return parseFloat(win.style.height)||400;}});
+  Object.defineProperty(d.querySelector('#desktop'),'clientHeight',{value:800});
+  const width=parseFloat(win.style.width);
+  win.querySelector('.window-resize').dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));
+  assert.equal(parseFloat(win.style.width),width+20);
+  assert.equal(win.dataset.resized,'true');
+  d.querySelector('[data-action="tidy"]').click();
+  assert.equal(win.dataset.resized,'false'); assert.equal(win.style.height,'');
   dom.window.close();
 });
