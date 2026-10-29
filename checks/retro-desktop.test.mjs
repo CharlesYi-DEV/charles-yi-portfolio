@@ -83,3 +83,13 @@ test('desktop icon coordinates persist in a cookie, clamp invalid positions and 
   assert.equal(clamped.style.left,'1098px'); assert.equal(clamped.style.top,'0px');
   for(const instance of [dom,restored,invalid]) instance.window.close();
 });
+test('startup opens Blog behind both introduction windows',()=>{
+  const dom=desktop(), d=dom.window.document;
+  const blog=d.querySelector('[data-id="blog"]');
+  assert.ok(blog && !blog.hidden && blog.classList.contains('startup-blog'));
+  for (const id of ['welcome','research']) assert.ok(Number(d.querySelector(`[data-id="${id}"]`).style.zIndex)>Number(blog.style.zIndex));
+  d.querySelector('.desktop-icon[data-open="blog"]').click();
+  assert.equal(blog.classList.contains('startup-blog'),false);
+  assert.ok(blog.classList.contains('active'));
+  dom.window.close();
+});

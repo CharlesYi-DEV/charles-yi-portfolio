@@ -561,6 +561,8 @@ function openWindow(id, trigger, initial = false) {
     enableDrag(win);
     initializeApplication(id, win);
   }
+  if (initial) win.classList.add(id === 'blog' ? 'startup-blog' : 'startup-top');
+  else if (win.matches('.startup-blog, .startup-top')) { win.classList.remove('startup-blog', 'startup-top'); place(win, id); }
   win.hidden = false;
   win.classList.remove('shaded');
   syncShadeControl(win);
@@ -603,6 +605,9 @@ function enableDrag(win) {
       $('.window-tab', win).setAttribute('aria-label', `Tuck ${folderNames[win.dataset.id]} into a bottom tab`);
       $('.window-tab', win).dataset.balloon = 'Tuck this folder into a tab at the bottom of the desktop.';
       syncFolderTabs();
+    }
+    if (win.matches('.startup-blog, .startup-top')) {
+      const oldTop = win.offsetTop; win.classList.remove('startup-blog', 'startup-top'); win.style.top = `${oldTop}px`;
     }
     win.dataset.moved = 'true';
     const startX = e.clientX, startY = e.clientY;
@@ -738,6 +743,7 @@ function dismissContextMenu(restoreFocus = false) {
 function arrangeWindows() {
   windows.querySelectorAll('.window').forEach(win => {
     win.hidden = false;
+    win.classList.remove('startup-blog', 'startup-top');
     place(win, win.dataset.id);
     $('.window-zoom', win).setAttribute('aria-pressed', 'false');
   });
@@ -748,6 +754,7 @@ function changeWallpaper() {
   $('#announcement').textContent = `${['Classic purple', 'Teal', 'Graphite'][wallpaper]} desktop`;
 }
 function toggleWindowSize(win) {
+  win.classList.remove('startup-blog', 'startup-top');
   if (win.classList.contains('folder-popup')) place(win, win.dataset.id);
   win.classList.remove('shaded');
   syncShadeControl(win);
@@ -959,6 +966,7 @@ updateLayout();
 
 function tick() { const now = new Date(); $('#clock').textContent = new Intl.DateTimeFormat('en-MY', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kuala_Lumpur' }).format(now); $('#clock').dateTime = now.toISOString(); }
 tick(); setInterval(tick, 30000);
+openWindow('blog', null, true);
 openWindow('research', null, true);
 openWindow('welcome', null, true);
 

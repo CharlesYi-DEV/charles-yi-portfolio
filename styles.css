@@ -236,3 +236,8 @@ body:not(.compact) .desktop-icons.dragging-icons{z-index:20000}
 .desktop-icon.icon-dragging{opacity:.75;cursor:grabbing;outline:1px dotted #fff}
 .desktop-icon.icon-dragging>span{background:#000080;color:#fff}
 .compact .desktop-icon{position:static;left:auto!important;top:auto!important;touch-action:auto}
+
+/* Three welcoming windows: Blog sits just beneath the two introduction windows. */
+body:not(.compact) .window.startup-top{max-height:45%}
+body:not(.compact) .window.startup-blog{left:13%!important;top:calc(45% - 32px)!important;width:65%;height:calc(55% - 40px);max-height:calc(55% - 40px)}
+.compact .window[data-id=research]{order:-1}

@@ -45,7 +45,7 @@ MASCO–ESCO is ongoing research. Completed computational work is distinguished 
 
 - Original 32 × 32 pixel-grid SVG icons, drawn with integer geometry and rendered at native or integer-multiple sizes.
 - A slim, original CSS-drawn beige Macintosh frame fills the browser viewport. A recessed CRT edge, small vents, and a floppy slot retain the hardware reference without exterior captions or controls.
-- About This Researcher and My Work open together, tiled side by side on wide displays. Each project includes a short summary and status. Narrow displays stack the windows inside the scrollable screen.
+- Blog opens behind About This Researcher and My Work at startup. On wide displays the two introduction windows sit side by side, overlapping the top of Blog by a small amount. Each project includes a short summary and status. Narrow displays stack the windows inside the scrollable screen.
 - Chicago throughout, with a consistent regular-weight hierarchy: 40px name, 32px document titles, 24px section headings, 20px body text, 18px interface and project descriptions, and 16px metadata. Reading text uses 28–29px line spacing and keeps its size on phones; the name reduces to 36px on small phones.
 - A compact menu bar, striped title bars, beveled controls, grey window interiors, Finder-style project icons, and a purple embossed desktop.
 - Click or tap once to open a document. Title bars support dragging. Close and expand buttons work on desktop; Escape closes the active menu or window. On narrow displays, windows stack vertically.
