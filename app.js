@@ -62,7 +62,7 @@ function icon(type, className = '') {
 }
 
 const contents = {
-  hackathon: () => `<div class="document"><div class="utility-banner">${icon('computer')}<div><h1>Hackathon</h1></div></div><p class="deployment-stamp">Under deployment</p><p class="lede">A home for my hackathon projects.</p><p>I’m preparing this space to share what I build, how it works, and what I learn along the way.</p><div class="document-note">Project details and demos will appear here when they’re ready.</div><button class="classic-button" data-open="research">Explore my current work</button></div>`,
+  hackathon: () => `<div class="document"><div class="utility-banner">${icon('computer')}<div><h1>Hackathon</h1></div></div><p class="deployment-stamp">Under deployment</p><p class="lede">A home for my hackathon projects.</p><p>I’m preparing this space to share what I build, how it works, and what I learn along the way.</p><div class="document-note">Project details and demos will appear here when they’re ready.</div><div class="button-row"><button class="classic-button primary" data-open="blog">View my blog post</button><button class="classic-button" data-open="research">Explore my current work</button></div></div>`,
   updates: () => `<div class="software-update"></div>`,
   blog: () => `<div class="blog-app" aria-label="Charles Yi’s blog reader"></div>`,
   welcome: () => `<div class="system-banner">${icon('computer')}<div><h1>Charles Yi</h1><span>Data science · Language · Reliable AI</span></div></div>
