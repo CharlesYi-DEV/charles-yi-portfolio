@@ -245,10 +245,10 @@ body:not(.compact) .desktop-icons.dragging-icons{z-index:20000}
 .window.shaded .window-resize,.window.maximized .window-resize,.compact .window-resize{display:none}
 .compact .window{height:auto!important}
 
-/* A little disk beside Blog. Motion is a brief, stepped greeting, never a loop. */
-.floppy-assistant{position:fixed;left:170px;top:500px;width:72px;z-index:9992;font:400 18px/25px var(--font-system)}
-.floppy-button{display:flex;flex-direction:column;align-items:center;gap:0;width:72px;padding:0;border:0;background:transparent;touch-action:manipulation}
-.floppy-sprite{display:block;width:72px;height:72px;image-rendering:pixelated;overflow:visible}
+/* Random, quiet moods; the face and limbs remain simple pixel lines. */
+.floppy-assistant{position:fixed;left:170px;top:500px;width:88px;z-index:9992;font:400 18px/25px var(--font-system)}
+.floppy-button{display:flex;flex-direction:column;align-items:center;gap:0;width:88px;padding:0;border:0;background:transparent;touch-action:manipulation}
+.floppy-sprite{display:block;width:88px;height:84px;image-rendering:pixelated;overflow:visible}
 .floppy-button>span{padding:0 4px;background:#ccc;color:#111;font:400 16px/20px var(--font-system);white-space:nowrap;box-shadow:1px 1px #333}
 .floppy-button:hover>span,.floppy-button:focus-visible>span{background:#000080;color:#fff}
 .floppy-invitation{position:absolute;left:0;bottom:calc(100% + 14px);width:280px;background:#ffffef;color:#111;border:1px solid #111;border-radius:12px;padding:16px;box-shadow:2px 2px #0007}
@@ -262,14 +262,23 @@ body:not(.compact) .desktop-icons.dragging-icons{z-index:20000}
 @keyframes floppy-notice{0%,30%,65%,100%{transform:scaleY(1)}40%,55%{transform:scaleY(.33)}}
 @keyframes floppy-click{0%,20%,85%,100%{transform:translateX(0)}40%,60%{transform:translateX(-2px)}}
 .floppy-assistant.walking .floppy-sprite{animation:floppy-shuffle .6s steps(1,end) infinite}
+.floppy-assistant.walking .floppy-leg-left{animation:floppy-step .6s steps(1,end) infinite}
+.floppy-assistant.walking .floppy-leg-right{animation:floppy-step .6s steps(1,end) -.3s infinite}
+.floppy-assistant.noticed .floppy-arm-right{animation:floppy-wave 1.2s steps(2,end) 1}
+.floppy-assistant[data-mood=nap] .floppy-eyes{transform-origin:17px 21px;transform:scaleY(.33)}
+.floppy-assistant[data-mood=peek] .floppy-eyes{animation:floppy-peek 5.5s steps(1,end) 1}
+@keyframes floppy-step{0%,49%{transform:translate(0,0)}50%,100%{transform:translate(1px,-2px)}}
+@keyframes floppy-wave{0%,100%{transform:translateY(0)}35%,65%{transform:translateY(-3px)}}
+@keyframes floppy-peek{0%,100%{transform:translateX(0)}20%,40%{transform:translateX(-1px)}60%,80%{transform:translateX(1px)}}
 .floppy-assistant.blog-nudge .floppy-sprite{animation:floppy-blog-hop .65s steps(3,end) 1}
 @keyframes floppy-blog-hop{0%,100%{transform:translateY(0)}45%,55%{transform:translateY(-4px)}}
 .floppy-assistant:hover .floppy-sprite,.floppy-assistant:focus-within .floppy-sprite{animation-play-state:paused}
+.floppy-assistant:hover .floppy-leg-left,.floppy-assistant:hover .floppy-leg-right,.floppy-assistant:focus-within .floppy-leg-left,.floppy-assistant:focus-within .floppy-leg-right{animation-play-state:paused}
 @keyframes floppy-shuffle{0%,49%{transform:translateY(0)}50%,100%{transform:translateY(-1px)}}
 .reduced-motion .floppy-assistant *{animation:none!important}
 .screen-os[inert] .floppy-assistant{visibility:hidden}
-.compact .floppy-assistant{width:64px}
-.compact .floppy-button{width:64px}.compact .floppy-sprite{width:54px;height:54px}
+.compact .floppy-assistant{width:66px}
+.compact .floppy-button{width:66px}.compact .floppy-sprite{width:66px;height:63px}
 .compact .floppy-invitation{width:min(280px,calc(100vw - 50px))}
 .compact .floppy-actions .classic-button{min-height:40px}
 

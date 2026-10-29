@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import {FloppyAssistant} from '../floppy-assistant.js';
 
-function setup({hidden=false, blocked=false, motion=true}={}) {
+function setup({hidden=false, blocked=false, motion=true, random=()=>0}={}) {
   const dom=new JSDOM('<div id="screen-stage"><main id="desktop"><button class="desktop-icon" data-open="studies">Research</button><button class="desktop-icon" data-open="blog">Blog</button><aside></aside></main></div><button id="toggle"></button><button id="reading">Current reading</button>',{url:'https://charlesyi.net',pretendToBeVisual:true});
   const w=dom.window,d=w.document;
   if(hidden) w.localStorage.setItem('charles-floppy-hidden-v1','1');
@@ -20,7 +20,7 @@ function setup({hidden=false, blocked=false, motion=true}={}) {
   const root=d.querySelector('aside');
   root.getBoundingClientRect=()=>rect(parseFloat(root.style.left)||0,parseFloat(root.style.top)||0,72,92);
   Object.defineProperty(root,'offsetWidth',{value:72}); Object.defineProperty(root,'offsetHeight',{value:92});
-  const assistant=new FloppyAssistant(root,d.querySelector('#toggle'),id=>{lastApp=id;opens++;},()=>ready,()=>motion);
+  const assistant=new FloppyAssistant(root,d.querySelector('#toggle'),id=>{lastApp=id;opens++;},()=>ready,()=>motion,random);
   assistant.position(null,d.querySelector('#desktop'));
   const advance=delay=>{for(const [id,t] of [...timers]) if(t.delay===delay){timers.delete(id);t.callback();}};
   const animate=ms=>{for(let i=0;i<ms;i+=100){clock+=100;for(const [id,callback] of [...frames]){frames.delete(id);callback(clock);}}};
@@ -76,4 +76,57 @@ test('hidden preference persists; showing restores roaming; unavailable storage 
   blocked.setReady(true);blocked.advance(3000);assert.equal(blocked.frames.size,1);
   blocked.assistant.button.click();blocked.d.querySelector('[data-floppy="open"]').click();assert.equal(blocked.lastApp,'blog');
   for(const instance of [s,reload,blocked])instance.dom.window.close();
+});
+
+
+test('random moods include wandering, bouncing, shy, looking around and dozing without consecutive repeats or speech',()=>{
+  let seed=17;
+  const s=setup({random:()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}});
+  const seen=new Set();let previous;
+  for(let i=0;i<60;i++){
+    s.assistant.chooseMotion();
+    assert.notEqual(s.assistant.mood,previous);
+    previous=s.assistant.mood;seen.add(previous);
+    assert.equal(s.assistant.invitation.hidden,true);
+  }
+  assert.deepEqual([...seen].sort(),['bounce','nap','peek','shy','wander']);s.dom.window.close();
+});
+
+test('DVD motion reflects off screen edges, changes its muted color, pauses on hover, and ends',()=>{
+  const s=setup();s.assistant.stopWalking();s.assistant.bounce();
+  s.animate(2000);
+  assert.ok(parseFloat(s.assistant.root.style.left)>20);
+  assert.ok(s.assistant.root.style.getPropertyValue('--floppy-plastic'));
+  s.assistant.root.dispatchEvent(new s.w.Event('pointerenter'));
+  const frozen=[s.assistant.root.style.left,s.assistant.root.style.top];s.animate(2000);
+  assert.deepEqual([s.assistant.root.style.left,s.assistant.root.style.top],frozen);
+  s.assistant.root.dispatchEvent(new s.w.Event('pointerleave'));
+  for(let i=0;i<30;i++){
+    s.animate(500);const r=s.assistant.root.getBoundingClientRect();
+    assert.ok(r.left>=12&&r.right<=988&&r.top>=46&&r.bottom<=628);
+    assert.equal(s.assistant.invitation.hidden,true);
+  }
+  s.animate(12000);assert.equal(s.frames.size,0);assert.equal(s.assistant.mood,'still');s.dom.window.close();
+});
+
+function hover(s,pointerType='mouse') {
+  const event=new s.w.MouseEvent('pointerenter',{clientX:460,clientY:345});
+  Object.defineProperty(event,'pointerType',{value:pointerType});
+  s.assistant.root.dispatchEvent(event);
+}
+
+test('shy mood makes one short dodge, stays catchable afterwards, and never evades touch or an actual press',()=>{
+  const s=setup();s.assistant.stopWalking();s.assistant.moveTo(400,300);s.assistant.setMood('shy');
+  hover(s);s.advance(220);s.animate(1000);
+  assert.notEqual(s.assistant.root.style.left,'400px');assert.equal(s.assistant.mood,'still');
+  assert.ok([...s.timers.values()].some(t=>t.delay===18000));assert.equal(s.assistant.invitation.hidden,true);
+  s.assistant.button.click();assert.equal(s.assistant.invitation.hidden,false);s.dom.window.close();
+  for(const input of ['touch','pen','press','keyboard']){
+    const t=setup();t.assistant.stopWalking();t.assistant.moveTo(400,300);t.assistant.setMood('shy');
+    hover(t,input==='press'||input==='keyboard'?'mouse':input);
+    if(input==='press')t.assistant.button.dispatchEvent(new t.w.Event('pointerdown',{bubbles:true}));
+    if(input==='keyboard')t.assistant.button.focus();
+    t.advance(220);t.animate(1000);assert.equal(t.assistant.root.style.left,'400px');
+    t.assistant.button.click();assert.equal(t.assistant.invitation.hidden,false);t.dom.window.close();
+  }
 });

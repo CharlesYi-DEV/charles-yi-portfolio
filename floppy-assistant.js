@@ -13,9 +13,13 @@ const thoughts = [
 ];
 
 // Original integer-pixel artwork, matching the desktop's existing SVG icons.
-const disk = `<svg class="floppy-sprite" viewBox="0 0 36 36" width="72" height="72" shape-rendering="crispEdges" aria-hidden="true">
+const disk = `<svg class="floppy-sprite" viewBox="-5 0 44 42" width="88" height="84" shape-rendering="crispEdges" aria-hidden="true">
+  <path class="floppy-arm-left" fill="#222" d="M3 19v1H0v5h-4v-1h3v-5z"/>
+  <path class="floppy-arm-right" fill="#222" d="M32 19h4v5h3v1h-4v-5h-3z"/>
+  <path class="floppy-leg-left" fill="#222" d="M11 32h1v6H7v-1h4z"/>
+  <path class="floppy-leg-right" fill="#222" d="M24 32h1v5h4v1h-5z"/>
   <path fill="#111" d="M4 1h24v1h2v2h2v28H3V2h1z"/>
-  <path fill="#6879ad" d="M4 2h24v2h3v27H4z"/>
+  <path fill="var(--floppy-plastic, #6879ad)" d="M4 2h24v2h3v27H4z"/>
   <path fill="#aab6db" d="M4 2h3v1H5v27H4zM5 2h23v1H5z"/>
   <path fill="#38436c" d="M30 5h1v26H5v-1h25z"/>
   <path fill="#24283c" d="M8 2h17v11H8z"/>
@@ -28,12 +32,13 @@ const disk = `<svg class="floppy-sprite" viewBox="0 0 36 36" width="72" height="
 </svg>`;
 
 export class FloppyAssistant {
-  constructor(root, toggle, openApp, ready = () => true, motion = () => true) {
+  constructor(root, toggle, openApp, ready = () => true, motion = () => true, random = Math.random) {
     this.root = root;
     this.toggle = toggle;
     this.openApp = openApp;
     this.thought = 0;
-    this.visitCount = 0;
+    this.random = random;
+    this.mood = 'still';
     this.ready = ready;
     this.motion = motion;
     this.view = root.ownerDocument.defaultView;
@@ -42,9 +47,11 @@ export class FloppyAssistant {
     this.button = root.querySelector('.floppy-button');
     root.hidden = this.readStorage('localStorage', HIDDEN_KEY) === '1';
     this.syncToggle();
-    root.addEventListener('pointerenter', () => { this.hovered = true; this.notice(); });
-    root.addEventListener('pointerleave', () => { this.hovered = false; root.classList.remove('noticed'); });
-    root.addEventListener('focusin', () => this.notice());
+    root.addEventListener('pointerenter', event => { this.hovered = true; this.notice(); this.prepareDodge(event); });
+    root.addEventListener('pointerleave', () => { this.hovered = false; this.cancelDodge(); root.classList.remove('noticed'); });
+    root.addEventListener('focusin', () => { this.cancelDodge(); this.notice(); });
+    // Once a press starts, stay put. Touch and keyboard access never dodge.
+    root.addEventListener('pointerdown', () => this.stopWalking());
     const dismissOutside = event => { if (!root.contains(event.target)) this.dismiss(); };
     root.ownerDocument.addEventListener('pointerdown', dismissOutside, {passive:true});
     root.ownerDocument.addEventListener('click', dismissOutside);
@@ -145,7 +152,7 @@ export class FloppyAssistant {
   }
   bounds() {
     const box = this.frame.getBoundingClientRect();
-    const width = this.root.offsetWidth || 72, height = this.root.offsetHeight || 92;
+    const width = this.root.offsetWidth || 88, height = this.root.offsetHeight || 104;
     return {left:box.left+12, top:box.top+46, right:Math.max(box.left+12,box.right-width-12), bottom:Math.max(box.top+46,box.bottom-height-72)};
   }
   moveTo(x,y) {
@@ -169,22 +176,113 @@ export class FloppyAssistant {
     this.view.clearTimeout(this.walkTimer);
     this.walkTimer = null;
     if (this.root.hidden || !this.motion() || !this.desktop) return;
-    this.walkTimer = this.view.setTimeout(() => { this.walkTimer = null; this.wander(); },delay);
+    this.walkTimer = this.view.setTimeout(() => { this.walkTimer = null; this.chooseMotion(); },delay);
   }
   stopWalking() {
     this.view.clearTimeout(this.walkTimer);
     this.view.clearTimeout(this.jumpTimer);
+    this.view.clearTimeout(this.moodTimer);
+    this.cancelDodge();
     this.view.cancelAnimationFrame?.(this.walkFrame);
     this.walkTimer = null; this.walkFrame = null;
     this.root.classList.remove('walking','blog-nudge');
+    this.root.style.removeProperty('--floppy-plastic');
+    this.setMood('still');
   }
   motionChanged() {
     this.stopWalking();
     this.start();
   }
+  setMood(mood) {
+    this.mood = mood;
+    this.root.dataset.mood = mood;
+  }
+  chooseMotion() {
+    if (this.root.hidden || !this.motion() || !this.frame) return;
+    if (this.isPaused() || !this.invitation.hidden) { this.queueWalk(3000); return; }
+    const moods = ['wander','wander','wander','bounce','bounce','shy','peek','nap'].filter(mood=>mood!==this.previousMood);
+    const mood = moods[Math.floor(this.random()*moods.length)];
+    this.stopWalking();
+    this.previousMood = mood;
+    this.setMood(mood);
+    if (mood === 'wander') this.wander();
+    else if (mood === 'bounce') this.bounce();
+    else {
+      this.dodged = false;
+      const duration = mood === 'shy' ? 14000 : mood === 'nap' ? 10000 : 5500;
+      this.moodTimer = this.view.setTimeout(()=>this.finishMood(),duration);
+    }
+  }
+  finishMood(delay = 5000 + Math.floor(this.random()*5000)) {
+    this.stopWalking();
+    this.queueWalk(delay);
+  }
+  bounce() {
+    this.setMood('bounce');
+    const colors = ['#6879ad','#7d78a4','#6c918b','#9a8467'];
+    let x=parseFloat(this.root.style.left), y=parseFloat(this.root.style.top);
+    let vx=(this.random()<.5?-1:1)*(75+this.random()*15), vy=(this.random()<.5?-1:1)*(50+this.random()*15);
+    let previous,elapsed=0,painted=0,hits=0;
+    const duration=24000+this.random()*10000;
+    const step=now=>{
+      if (!this.motion() || this.root.hidden) { this.stopWalking(); return; }
+      const dt=previous===undefined?0:Math.min(100,now-previous); previous=now;
+      if (!this.isPaused()) elapsed+=dt;
+      const tick=Math.floor(elapsed/80)*80;
+      if(tick>painted) {
+        const seconds=(tick-painted)/1000; painted=tick;
+        const b=this.bounds(); let hit=false;
+        x+=vx*seconds;y+=vy*seconds;
+        if(x<b.left || x>b.right){vx=-vx;x=x<b.left?b.left+(b.left-x):b.right-(x-b.right);hit=true;}
+        if(y<b.top || y>b.bottom){vy=-vy;y=y<b.top?b.top+(b.top-y):b.bottom-(y-b.bottom);hit=true;}
+        x=Math.max(b.left,Math.min(b.right,x));y=Math.max(b.top,Math.min(b.bottom,y));
+        if(hit)this.root.style.setProperty('--floppy-plastic',colors[++hits%colors.length]);
+        this.moveTo(x,y);
+      }
+      if(elapsed>=duration){this.finishMood();return;}
+      this.walkFrame=this.view.requestAnimationFrame(step);
+    };
+    this.walkFrame=this.view.requestAnimationFrame(step);
+  }
+  cancelDodge() {
+    this.view.clearTimeout(this.dodgeTimer);
+    this.dodgeTimer=null;
+  }
+  prepareDodge(event) {
+    if(this.mood!=='shy' || this.dodged || event.pointerType!=='mouse' || !this.motion() || !this.invitation.hidden || this.root.contains(this.root.ownerDocument.activeElement)) return;
+    const pointer={x:event.clientX,y:event.clientY};
+    this.cancelDodge();
+    this.dodgeTimer=this.view.setTimeout(()=>{
+      this.dodgeTimer=null;
+      if(this.hovered && this.ready() && this.mood==='shy' && !this.root.contains(this.root.ownerDocument.activeElement)) this.dodge(pointer);
+    },220);
+  }
+  dodge(pointer) {
+    const from={x:parseFloat(this.root.style.left),y:parseFloat(this.root.style.top)},b=this.bounds();
+    const width=this.root.offsetWidth||88,height=this.root.offsetHeight||104;
+    const angle=Math.atan2(from.y+height/2-pointer.y,from.x+width/2-pointer.x);
+    const controls=[...this.desktop.querySelectorAll('.desktop-icon,.folder-tab')].map(el=>el.getBoundingClientRect()).filter(r=>r.width&&r.height);
+    const options=[0,.7,-.7,1.4,-1.4,Math.PI].map(turn=>({x:Math.max(b.left,Math.min(b.right,from.x+Math.cos(angle+turn)*120)),y:Math.max(b.top,Math.min(b.bottom,from.y+Math.sin(angle+turn)*100))}));
+    const to=options.find(p=>Math.hypot(p.x-from.x,p.y-from.y)>50&&!controls.some(r=>p.x<r.right+4&&p.x+width>r.left-4&&p.y<r.bottom+4&&p.y+height>r.top-4));
+    if(!to)return;
+    this.stopWalking();this.dodged=true;this.setMood('dodge');this.root.classList.add('walking');
+    let elapsed=0,previous;
+    const step=now=>{
+      if(!this.motion()||this.root.hidden){this.stopWalking();return;}
+      const dt=previous===undefined?0:Math.min(100,now-previous);previous=now;
+      // This one brief scoot ignores hover, but pauses for background/sleep/focus.
+      if(this.ready()&&!this.root.contains(this.root.ownerDocument.activeElement))elapsed+=dt;
+      const t=Math.min(1,Math.floor(elapsed/60)*60/480);
+      this.moveTo(from.x+(to.x-from.x)*t,from.y+(to.y-from.y)*t);
+      if(elapsed>=480){this.moveTo(to.x,to.y);this.finishMood(18000);return;}
+      this.walkFrame=this.view.requestAnimationFrame(step);
+    };
+    this.walkFrame=this.view.requestAnimationFrame(step);
+  }
   wander() {
     if (this.root.hidden || !this.motion() || !this.frame) return;
     if (this.isPaused()) { this.queueWalk(3000); return; }
+    this.setMood('wander');
     const frame = this.frame.getBoundingClientRect(), doc = this.root.ownerDocument;
     const targets = [...this.desktop.querySelectorAll('.desktop-icon, .folder-tab')].filter(el => {
       const box = el.getBoundingClientRect();
@@ -193,7 +291,7 @@ export class FloppyAssistant {
       return hit === el || el.contains(hit);
     });
     const b = this.bounds();
-    const width = this.root.offsetWidth || 72, height = this.root.offsetHeight || 92;
+    const width = this.root.offsetWidth || 88, height = this.root.offsetHeight || 104;
     // Rest beside a control, never on top of another desktop icon or tab.
     const stops = targets.map(target => {
       const box = target.getBoundingClientRect();
@@ -205,7 +303,8 @@ export class FloppyAssistant {
       return {target,box,candidates};
     }).filter(stop=>stop.candidates.length);
     const alternatives = stops.filter(({target})=>(target.dataset.open || target.dataset.folderTab)!==this.lastVisited);
-    const stop = (alternatives.length ? alternatives : stops)[this.visitCount++ % (alternatives.length || stops.length)];
+    const choices = alternatives.length ? alternatives : stops;
+    const stop = choices[Math.floor(this.random()*choices.length)];
     if (!stop) { this.queueWalk(12000); return; }
     const {target,box,candidates} = stop;
     const from = {x:parseFloat(this.root.style.left),y:parseFloat(this.root.style.top)};
