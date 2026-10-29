@@ -95,3 +95,5 @@ These development dependencies are not needed by the static production build.
 - **Hackathon:** a desktop app reserved for future hackathon projects, currently labelled “Under deployment”.
 
 `software-update.js` is included in the static build and local server. `npm test` covers folder lifecycle, accessible help dismissal, feed loading and offline fallback alongside the existing blog-reader checks.
+
+Desktop icons can be dragged on wide displays. Arrow keys move a focused icon by 10 pixels (Shift: 1 pixel). Right-click the desktop or use View → Arrange Desktop Icons to restore the grid. Positions are clamped to the desktop and stored as proportional coordinates in the first-party `charles-desktop-icons-v1` cookie (`Path=/`, `SameSite=Lax`, `Secure` on HTTPS, one-year expiry). Only known icon IDs and coordinates are stored. Blocked cookies fall back to in-memory positions for the visit. Mobile keeps the compact grid without overwriting desktop coordinates.

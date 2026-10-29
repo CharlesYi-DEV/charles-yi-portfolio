@@ -5,7 +5,7 @@ import {JSDOM} from 'jsdom';
 import {SoftwareUpdate} from '../software-update.js';
 const html = readFileSync(new URL('../index.html', import.meta.url),'utf8');
 const source = readFileSync(new URL('../app.js', import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
-function desktop() {
+function desktop(cookie) {
   const dom = new JSDOM(html,{url:'https://charlesyi.net',runScripts:'outside-only'});
   const w=dom.window;
   w.matchMedia=()=>({matches:false,addEventListener(){}});
@@ -14,6 +14,11 @@ function desktop() {
   w.SoftwareUpdate=class {destroy(){}};
   w.localStorage.setItem('charles-desktop-v1',JSON.stringify({motion:false}));
   for (const id of ['screen-stage','desktop']) Object.defineProperty(w.document.getElementById(id),'clientWidth',{value:1200});
+  if (cookie) w.document.cookie=cookie;
+  Object.defineProperty(w.document.getElementById('desktop-icons'),'clientWidth',{value:1200});
+  Object.defineProperty(w.document.getElementById('desktop-icons'),'clientHeight',{value:700});
+  Object.defineProperty(w.HTMLElement.prototype,'offsetLeft',{get(){return parseFloat(this.style.left)||0;}});
+  Object.defineProperty(w.HTMLElement.prototype,'offsetTop',{get(){return parseFloat(this.style.top)||0;}});
   w.eval(source); return dom;
 }
 test('pop-up folders preserve their contents, switch tabs and detach cleanly',()=>{
@@ -59,4 +64,22 @@ test('Software Update reads valid posts, opens the chosen post, and uses saved d
   await settle(); assert.match(offline.status.textContent,/Saved writing/);
   assert.equal(document.querySelectorAll('[data-update-post]').length,1);
   offline.destroy(); dom.window.close();
+});
+
+test('desktop icon coordinates persist in a cookie, clamp invalid positions and reset through Arrange',()=>{
+  const dom=desktop(), d=dom.window.document;
+  const button=d.querySelector('.desktop-icon[data-open="hackathon"]');
+  const before=parseFloat(button.style.left);
+  button.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));
+  assert.equal(parseFloat(button.style.left),before-10);
+  const saved=d.cookie; assert.match(saved,/charles-desktop-icons-v1=/);
+  const restored=desktop(saved), icon=restored.window.document.querySelector('.desktop-icon[data-open="hackathon"]');
+  assert.equal(parseFloat(icon.style.left),before-10);
+  restored.window.document.querySelector('[data-action="arrange-icons"]').click();
+  assert.equal(parseFloat(icon.style.left),before);
+  assert.match(restored.window.document.cookie,/charles-desktop-icons-v1=%7B%7D/);
+  const invalid=desktop('charles-desktop-icons-v1='+encodeURIComponent(JSON.stringify({hackathon:{x:99,y:-2},unknown:{x:1,y:1}})));
+  const clamped=invalid.window.document.querySelector('.desktop-icon[data-open="hackathon"]');
+  assert.equal(clamped.style.left,'1098px'); assert.equal(clamped.style.top,'0px');
+  for(const instance of [dom,restored,invalid]) instance.window.close();
 });

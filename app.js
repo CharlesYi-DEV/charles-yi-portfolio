@@ -81,7 +81,7 @@ const contents = {
   evaluation: () => `<div class="document"><span class="eyebrow">EXPERIENCE NOTES / 03</span><h1>Beyond a plausible answer.</h1><p class="lede">An answer can sound right and still miss the point.</p><div class="document-note">RWS · Data Service Specialist · Part-time<br>August 2026–present</div><p>My work includes evaluating AI-generated text for factual accuracy, relevance, and Mandarin cultural appropriateness, alongside data collection, labelling, and annotation for model assessment and localisation.</p><h2>Three questions I bring to evaluation</h2><ol class="questions"><li>Is the answer supported by evidence?</li><li>Does it address what was actually asked?</li><li>Does it make sense in the reader’s cultural context?</li></ol><p>This experience connects to my wider interest in reliable AI systems: understanding the limits of an output, alongside its usefulness.</p></div>`,
   resume: () => `<div class="document"><span class="eyebrow">CURRICULUM VITAE / SELECTED EXPERIENCE</span><h1>Charles Yi</h1><p class="lede">Data science · Language · Reliable AI</p><h2>Education</h2><div class="resume-entry"><strong>Master of Data Science</strong><span>2025–present</span><p>Monash University · Expected December 2026</p></div><div class="resume-entry"><strong>BEng, Computer Science and Technology</strong><span>2019–2024</span><p>Dongguan University of Technology</p></div><h2>Experience</h2><div class="resume-entry"><strong>Data Service Specialist · RWS</strong><span>2026–present</span><p>AI evaluation, annotation, and localisation · Part-time</p></div><div class="resume-entry"><strong>Technical Sales Engineer</strong><span>2024</span><p>Dongguan Songhu Plastic Machinery Co Ltd</p></div><div class="resume-entry"><strong>Co-Founder · CYX Cosmetics Store</strong><span>2021–2026</span><p>Customer acquisition, content, and commercial performance</p></div><h2>Technical superpowers</h2><p><b>Data:</b> Python, SQL, PostgreSQL, pandas, data validation, taxonomy mapping, evidence traceability.</p><p><b>ML:</b> scikit-learn, TF-IDF, logistic regression, sentence embeddings, SVMs, Keras, held-out evaluation.</p><p><b>Audio & systems:</b> librosa, MFCC extraction, Kivy, Docker, cloud deployment.</p><button class="classic-button" data-open="contact">Get in touch ↗</button></div>`,
   contact: () => `<div class="document contact-document">${icon('contact')}<span class="eyebrow">LET’S COMPARE NOTES</span><h1>Say hello.</h1><p class="lede">Have a research question, a project idea, or a different way of looking at a problem?</p><a class="contact-link" href="mailto:charles.yi@msn.com">charles.yi@msn.com ↗</a><div class="button-row"><a class="classic-button" href="https://github.com/CharlesYi-DEV" target="_blank" rel="noopener noreferrer">View my GitHub ↗</a><a class="classic-button" href="https://www.linkedin.com/in/charlesyi-dev/" target="_blank" rel="noopener noreferrer">Find me on LinkedIn ↗</a></div><p class="muted">UTC+8</p></div>`,
-  help: () => `<div class="document"><span class="eyebrow">A QUICK ORIENTATION</span><h1>Welcome to my desktop.</h1><ul><li>Click or tap an icon once to open it. Keyboard users can Tab to an icon and press Enter.</li><li>Drag a striped title bar to move a window. The square at the left closes it; the square at the right expands it.</li><li>Use the File menu to reopen windows, or View → Arrange windows to reset their positions.</li><li>On narrow screens, windows stack vertically. Opening an application scrolls to it.</li><li>Right-click the desktop for shortcuts and display settings. Right-click an icon or project for Open and Get Info, or a window for its controls. Shift+F10 opens the same menu from the keyboard; use arrow keys to choose an item and Escape to dismiss it. Selected text and links keep the browser’s normal menu.</li><li>Press Escape to close a menu or the active window.</li></ul><h2>Desktop extras</h2><ul><li>Help → Show Balloon Help explains controls when you hover or focus them. Escape dismisses a balloon.</li><li>Click a bottom folder tab to open it upwards; click again to tuck it away. Drag My Work, Blog, or Scrapbook to the bottom edge to make a tab, or use the title-bar tab button. The same button returns a pop-up to a normal window.</li><li>Software Update checks for new blog posts and shows dated project milestones. It opens writing here, without installing anything.</li><li>Blog loads my writing from Charles’s Blog. Open a post to read it here, or use Open blog for the standalone site. Refresh checks for new writing; saved posts remain readable if the connection fails.</li><li>Sherlock searches this portfolio by topic. Use File → Find or Ctrl/Command+Shift+F.</li><li>Keep projects in Scrapbook using the button in a project or its right-click menu. Saved projects and appearance preferences stay in this browser.</li><li>Control Panels changes the wallpaper, reading size, and opening animations.</li><li>The Window menu lists every open window. Double-click a title bar or use its roll-up button to tuck a window away.</li><li>View → Sleep starts a starfield. Click, tap, or press any key to return.</li></ul><h2>About the design</h2><p>A personal tribute to the tactile, curious world of classic Macintosh desktops, inspired by the Platinum interface of <a href="https://en.wikipedia.org/wiki/Mac_OS_9" target="_blank" rel="noopener noreferrer">Mac OS 9</a>. The recessed beige CRT frame also takes inspiration from <a href="https://taoofmac.com/space/reviews/2025/11/24/1900" target="_blank" rel="noopener noreferrer">the Maclock</a>. Original interface artwork; built for the modern web.</p><p>View → Replay startup runs the short boot sequence. View → Opening animations turns the launch effects on or off; your system’s reduced-motion preference is respected. The display uses the available browser space. Expand an individual document with the square at the right of its title bar.</p><p>The My Work folder contains current experience and selected projects. In Progress describes research still under development; planned evaluation is distinguished from completed computational work.</p></div>`,
+  help: () => `<div class="document"><span class="eyebrow">A QUICK ORIENTATION</span><h1>Welcome to my desktop.</h1><ul><li>Click or tap an icon once to open it. Drag desktop icons to move them; their positions are remembered in a preference cookie for one year. Right-click the desktop → Arrange Desktop Icons resets the layout. Keyboard users can Tab to an icon, use arrow keys to move it (Shift for fine adjustment), and press Enter to open it. Phones keep the compact icon grid.</li><li>Drag a striped title bar to move a window. The square at the left closes it; the square at the right expands it.</li><li>Use the File menu to reopen windows, or View → Arrange windows to reset their positions.</li><li>On narrow screens, windows stack vertically. Opening an application scrolls to it.</li><li>Right-click the desktop for shortcuts and display settings. Right-click an icon or project for Open and Get Info, or a window for its controls. Shift+F10 opens the same menu from the keyboard; use arrow keys to choose an item and Escape to dismiss it. Selected text and links keep the browser’s normal menu.</li><li>Press Escape to close a menu or the active window.</li></ul><h2>Desktop extras</h2><ul><li>Help → Show Balloon Help explains controls when you hover or focus them. Escape dismisses a balloon.</li><li>Click a bottom folder tab to open it upwards; click again to tuck it away. Drag My Work, Blog, or Scrapbook to the bottom edge to make a tab, or use the title-bar tab button. The same button returns a pop-up to a normal window.</li><li>Software Update checks for new blog posts and shows dated project milestones. It opens writing here, without installing anything.</li><li>Blog loads my writing from Charles’s Blog. Open a post to read it here, or use Open blog for the standalone site. Refresh checks for new writing; saved posts remain readable if the connection fails.</li><li>Sherlock searches this portfolio by topic. Use File → Find or Ctrl/Command+Shift+F.</li><li>Keep projects in Scrapbook using the button in a project or its right-click menu. Saved projects and appearance preferences stay in this browser.</li><li>Control Panels changes the wallpaper, reading size, and opening animations.</li><li>The Window menu lists every open window. Double-click a title bar or use its roll-up button to tuck a window away.</li><li>View → Sleep starts a starfield. Click, tap, or press any key to return.</li></ul><h2>About the design</h2><p>A personal tribute to the tactile, curious world of classic Macintosh desktops, inspired by the Platinum interface of <a href="https://en.wikipedia.org/wiki/Mac_OS_9" target="_blank" rel="noopener noreferrer">Mac OS 9</a>. The recessed beige CRT frame also takes inspiration from <a href="https://taoofmac.com/space/reviews/2025/11/24/1900" target="_blank" rel="noopener noreferrer">the Maclock</a>. Original interface artwork; built for the modern web.</p><p>View → Replay startup runs the short boot sequence. View → Opening animations turns the launch effects on or off; your system’s reduced-motion preference is respected. The display uses the available browser space. Expand an individual document with the square at the right of its title bar.</p><p>The My Work folder contains current experience and selected projects. In Progress describes research still under development; planned evaluation is distinguished from completed computational work.</p></div>`,
   future: () => `<div class="document"><span class="eyebrow">IN DEVELOPMENT / RESEARCH PROJECT</span><h1>MASCO–ESCO</h1><p class="lede">Building a reproducible bridge between Malaysian occupations and European occupation and skills classifications.</p><div class="document-note"><b>Status: research in progress</b><br>Computational retrieval completed; independent human evaluation is planned.</div><h2>What I’m developing</h2><p>A pipeline to align individual occupations in MASCO 2020 with ESCO 1.2.1, extending the occupation-mapping questions explored in ReRouteHer. The study compares lexical, dense, hybrid, and reranked retrieval, with attention to occupational scope and Malaysian terminology.</p><h2>Work completed so far</h2><ul><li>Automated retrieval across 6,620 extracted MASCO occupations against 3,039 ESCO occupations.</li><li>Initial Qwen3 reranking for a 330-occupation sample.</li><li>A research proposal for independently evaluating the candidate mappings.</li></ul><h2>What comes next</h2><p>The annotation platform is set up for 15 calibration occupations and 150 evaluation occupations. Three annotators will review the same occupations independently, followed by adjudication. Human review is still ahead.</p><p>Planned outputs include a documented evaluation reference set, reproducible comparisons, and analysis of ambiguous, broader, and narrower occupation matches.</p><div class="document-note">This is ongoing research, not a published or fully human-validated national crosswalk. Retrieval completion does not establish mapping accuracy.</div><a class="classic-button" href="https://github.com/CharlesYi-DEV/masco-esco-crosswalk" target="_blank" rel="noopener noreferrer">View project repository</a><p class="muted">Project status: 28 October 2026.</p></div>`
 };
 
@@ -313,6 +313,94 @@ document.addEventListener('click', event => {
 
 const apps = [['welcome', 'Charles HD'], ['research', 'My Work'], ['future', 'In Progress'], ['resume', 'Résumé'], ['contact', 'Contact'], ['blog', 'Blog'], ['hackathon', 'Hackathon'], ['sherlock', 'Sherlock']];
 $('#desktop-icons').innerHTML = apps.map(([id, label]) => `<button class="desktop-icon" data-open="${id}">${icon(id)}<span>${label}</span></button>`).join('');
+
+// Only icon IDs and proportional coordinates are stored in this preference cookie.
+const iconCookie = 'charles-desktop-icons-v1';
+let iconPositions = {};
+try {
+  const entry = document.cookie.split('; ').find(value => value.startsWith(iconCookie + '='));
+  const saved = entry && JSON.parse(decodeURIComponent(entry.slice(iconCookie.length + 1)));
+  for (const [id] of apps) {
+    const position = saved?.[id];
+    if (position && Number.isFinite(position.x) && Number.isFinite(position.y)) {
+      iconPositions[id] = {x: Math.max(0, Math.min(1, position.x)), y: Math.max(0, Math.min(1, position.y))};
+    }
+  }
+} catch { /* Ignore an expired, damaged or unavailable cookie. */ }
+function saveIconPositions() {
+  try {
+    document.cookie = `${iconCookie}=${encodeURIComponent(JSON.stringify(iconPositions))}; Max-Age=31536000; Path=/; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
+    return document.cookie.split('; ').some(value => value.startsWith(iconCookie + '='));
+  } catch { return false; }
+}
+function iconBounds(button) {
+  const area = $('#desktop-icons');
+  return {x: Math.max(0, area.clientWidth - (button.offsetWidth || 102)), y: Math.max(0, area.clientHeight - (button.offsetHeight || 65))};
+}
+function layoutDesktopIcons() {
+  if (mobile()) return;
+  const area = $('#desktop-icons');
+  const rows = Math.max(1, Math.floor((area.clientHeight - 12) / 74));
+  area.querySelectorAll('.desktop-icon').forEach((button, index) => {
+    const bounds = iconBounds(button), position = iconPositions[button.dataset.open];
+    const x = position ? position.x * bounds.x : bounds.x - 10 - Math.floor(index / rows) * 112;
+    const y = position ? position.y * bounds.y : 12 + (index % rows) * 74;
+    button.style.left = `${Math.max(0, Math.min(bounds.x, x))}px`;
+    button.style.top = `${Math.max(0, Math.min(bounds.y, y))}px`;
+  });
+}
+function rememberIcon(button) {
+  const bounds = iconBounds(button);
+  iconPositions[button.dataset.open] = {x: bounds.x ? button.offsetLeft / bounds.x : 0, y: bounds.y ? button.offsetTop / bounds.y : 0};
+  const saved = saveIconPositions();
+  $('#announcement').textContent = `${button.textContent.trim()} position ${saved ? 'saved in this browser' : 'changed for this visit; cookies are unavailable'}`;
+}
+function arrangeDesktopIcons() {
+  iconPositions = {}; saveIconPositions(); layoutDesktopIcons();
+  $('#announcement').textContent = 'Desktop icons arranged';
+}
+let suppressIconClick = null;
+$('#desktop-icons').addEventListener('click', event => {
+  if (suppressIconClick && event.detail !== 0 && event.target.closest('.desktop-icon') === suppressIconClick.button && Date.now() < suppressIconClick.until) {
+    event.preventDefault(); event.stopImmediatePropagation(); suppressIconClick = null;
+  }
+}, true);
+$('#desktop-icons').addEventListener('pointerdown', event => {
+  const button = event.target.closest('.desktop-icon');
+  if (!button || mobile() || event.button !== 0) return;
+  hideBalloon();
+  const start = {x: event.clientX, y: event.clientY, left: button.offsetLeft, top: button.offsetTop};
+  let dragged = false;
+  button.setPointerCapture(event.pointerId);
+  const move = e => {
+    if (!dragged && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 5) return;
+    dragged = true; e.preventDefault();
+    button.classList.add('icon-dragging'); $('#desktop-icons').classList.add('dragging-icons');
+    const bounds = iconBounds(button);
+    button.style.left = `${Math.max(0, Math.min(bounds.x, start.left + e.clientX - start.x))}px`;
+    button.style.top = `${Math.max(0, Math.min(bounds.y, start.top + e.clientY - start.y))}px`;
+  };
+  const finish = e => {
+    button.removeEventListener('pointermove', move); button.removeEventListener('pointerup', finish); button.removeEventListener('pointercancel', finish);
+    if (button.hasPointerCapture(event.pointerId)) button.releasePointerCapture(event.pointerId);
+    button.classList.remove('icon-dragging'); $('#desktop-icons').classList.remove('dragging-icons');
+    if (!dragged) return;
+    suppressIconClick = {button, until: Date.now() + 700};
+    if (e.type === 'pointercancel') { button.style.left = `${start.left}px`; button.style.top = `${start.top}px`; return; }
+    rememberIcon(button); button.focus({preventScroll:true});
+  };
+  button.addEventListener('pointermove', move); button.addEventListener('pointerup', finish); button.addEventListener('pointercancel', finish);
+});
+$('#desktop-icons').addEventListener('keydown', event => {
+  const button = event.target.closest('.desktop-icon');
+  const direction = {ArrowLeft: [-1,0], ArrowRight: [1,0], ArrowUp: [0,-1], ArrowDown: [0,1]}[event.key];
+  if (!button || !direction || mobile() || event.metaKey || event.ctrlKey || event.altKey) return;
+  event.preventDefault(); hideBalloon();
+  const bounds = iconBounds(button), step = event.shiftKey ? 1 : 10;
+  button.style.left = `${Math.max(0, Math.min(bounds.x, button.offsetLeft + direction[0] * step))}px`;
+  button.style.top = `${Math.max(0, Math.min(bounds.y, button.offsetTop + direction[1] * step))}px`;
+  rememberIcon(button);
+});
 
 // Classic pop-up folders keep their contents alive while tucked away.
 const folderIds = ['research', 'blog', 'scrapbook'];
@@ -706,6 +794,7 @@ function openContextMenu(target, x, y) {
     add('Blog', () => launchWindow('blog', origin));
     add('Software Update…', () => launchWindow('updates', origin));
     separator();
+    add('Arrange Desktop Icons', arrangeDesktopIcons);
     add('Arrange Windows', arrangeWindows);
     add('Control Panels', () => launchWindow('panels', origin));
     add('Change Desktop Pattern', changeWallpaper);
@@ -836,6 +925,7 @@ document.addEventListener('click', e => {
   if (action === 'motion') { setMotion(!motionEnabled); button.closest('.menu')?.querySelector('.menu-toggle').focus(); }
   if (action === 'close') { cancelLaunch(); closeWindow(activeId); }
   if (action === 'tidy') arrangeWindows();
+  if (action === 'arrange-icons') arrangeDesktopIcons();
   if (action === 'wallpaper') changeWallpaper();
 });
 document.addEventListener('keydown', e => {
@@ -854,6 +944,7 @@ function updateLayout() {
   hideBalloon();
   dismissContextMenu();
   document.body.classList.toggle('compact', mobile());
+  layoutDesktopIcons();
   if (!mobile()) windows.querySelectorAll('.window:not(.maximized):not(.folder-popup):not([hidden])').forEach(win => {
     if (win.dataset.moved !== 'true') { const shaded = win.classList.contains('shaded'); place(win, win.dataset.id); if (shaded) { win.classList.add('shaded'); syncShadeControl(win); } return; }
     win.style.width = `${Math.min(config[win.dataset.id].width, desktop.clientWidth - 130)}px`;
