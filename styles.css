@@ -244,3 +244,35 @@ body:not(.compact) .desktop-icons.dragging-icons{z-index:20000}
 .window[data-resized=true] .window-content{flex:1}
 .window.shaded .window-resize,.window.maximized .window-resize,.compact .window-resize{display:none}
 .compact .window{height:auto!important}
+
+/* A little disk beside Blog. Motion is a brief, stepped greeting, never a loop. */
+.floppy-assistant{position:fixed;left:170px;top:500px;width:72px;z-index:9992;font:400 18px/25px var(--font-system)}
+.floppy-button{display:flex;flex-direction:column;align-items:center;gap:0;width:72px;padding:0;border:0;background:transparent;touch-action:manipulation}
+.floppy-sprite{display:block;width:72px;height:72px;image-rendering:pixelated;overflow:visible}
+.floppy-button>span{padding:0 4px;background:#ccc;color:#111;font:400 16px/20px var(--font-system);white-space:nowrap;box-shadow:1px 1px #333}
+.floppy-button:hover>span,.floppy-button:focus-visible>span{background:#000080;color:#fff}
+.floppy-invitation{position:absolute;left:0;bottom:calc(100% + 14px);width:280px;background:#ffffef;color:#111;border:1px solid #111;border-radius:12px;padding:16px;box-shadow:2px 2px #0007}
+.floppy-invitation:after{content:'';position:absolute;left:var(--floppy-tail,28px);bottom:-9px;width:16px;height:16px;background:#ffffef;border-right:1px solid #111;border-bottom:1px solid #111;transform:skewY(35deg)}
+.floppy-invitation.below{top:calc(100% + 14px);bottom:auto}
+.floppy-invitation.below:after{top:-9px;bottom:auto;border:0;border-left:1px solid #111;border-top:1px solid #111}
+.floppy-invitation p{margin:0 0 14px}.floppy-invitation strong{display:block;font-weight:400;font-size:20px;line-height:26px;margin-bottom:8px}.floppy-invitation p>span{display:block}
+.floppy-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.floppy-actions .classic-button{font:400 16px/24px var(--font-system);min-height:34px;padding:3px 9px}
+.floppy-assistant.inviting .floppy-shutter,.floppy-assistant.noticed .floppy-shutter{animation:floppy-click 1.2s steps(2,end) 1}
+.floppy-assistant.noticed .floppy-eyes{transform-origin:17px 21px;animation:floppy-notice 1.2s steps(1,end) 1}
+@keyframes floppy-notice{0%,30%,65%,100%{transform:scaleY(1)}40%,55%{transform:scaleY(.33)}}
+@keyframes floppy-click{0%,20%,85%,100%{transform:translateX(0)}40%,60%{transform:translateX(-2px)}}
+.floppy-assistant.walking .floppy-sprite{animation:floppy-shuffle .6s steps(1,end) infinite}
+.floppy-assistant:hover .floppy-sprite,.floppy-assistant:focus-within .floppy-sprite{animation-play-state:paused}
+@keyframes floppy-shuffle{0%,49%{transform:translateY(0)}50%,100%{transform:translateY(-1px)}}
+.reduced-motion .floppy-assistant *{animation:none!important}
+.screen-os[inert] .floppy-assistant{visibility:hidden}
+.compact .floppy-assistant{width:64px}
+.compact .floppy-button{width:64px}.compact .floppy-sprite{width:54px;height:54px}
+.compact .floppy-invitation{width:min(280px,calc(100vw - 50px))}
+.compact .floppy-actions .classic-button{min-height:40px}
+
+/* The compact desktop still fills its screen after every window is closed. */
+.compact #desktop{display:flex;flex-direction:column;min-height:var(--desktop-height,calc(100dvh - 110px));padding-bottom:4px}
+.compact #desktop-icons,.compact #windows,.compact .folder-tabs,.compact .control-strip{flex-shrink:0}
+.compact .folder-tabs{margin-top:auto}
+.research-progress{color:#665016}

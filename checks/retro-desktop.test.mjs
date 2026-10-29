@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {SoftwareUpdate} from '../software-update.js';
+import {FloppyAssistant} from '../floppy-assistant.js';
 const html = readFileSync(new URL('../index.html', import.meta.url),'utf8');
 const source = readFileSync(new URL('../app.js', import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
 function desktop(cookie) {
@@ -12,6 +13,7 @@ function desktop(cookie) {
   w.ResizeObserver=class {observe(){}};
   w.BlogReader=class {constructor(root){this.root=root;} destroy(){this.destroyed=true;}};
   w.SoftwareUpdate=class {destroy(){}};
+  w.FloppyAssistant=FloppyAssistant;
   w.localStorage.setItem('charles-desktop-v1',JSON.stringify({motion:false}));
   for (const id of ['screen-stage','desktop']) Object.defineProperty(w.document.getElementById(id),'clientWidth',{value:1200});
   if (cookie) w.document.cookie=cookie;
@@ -97,5 +99,18 @@ test('startup keeps the two original windows and exposes resize controls',()=>{
   assert.equal(win.dataset.resized,'true');
   d.querySelector('[data-action="tidy"]').click();
   assert.equal(win.dataset.resized,'false'); assert.equal(win.style.height,'');
+  dom.window.close();
+});
+
+test('Research contains the in-progress crosswalk and comes before Hackathon',()=>{
+  const dom=desktop(),d=dom.window.document;
+  const ids=[...d.querySelectorAll('.desktop-icon')].map(e=>e.dataset.open);
+  assert.deepEqual(ids.slice(1,4),['research','studies','hackathon']);
+  assert.equal(d.querySelector('.desktop-icon[data-open="future"]'),null);
+  assert.equal(d.querySelectorAll('[data-id="research"] .project-row').length,3);
+  d.querySelector('.desktop-icon[data-open="studies"]').click();
+  assert.match(d.querySelector('[data-id="studies"]').textContent,/MASCO–ESCO.*In progress/);
+  d.querySelector('[data-id="studies"] [data-open="future"]').click();
+  assert.ok(d.querySelector('[data-id="future"]'));
   dom.window.close();
 });

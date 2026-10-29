@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node server.mjs",
     "build": "node build.mjs",
-    "check": "node --check app.js && node --check blog-reader.js && node --check software-update.js && node --check server.mjs && node --check build.mjs",
+    "check": "node --check app.js && node --check blog-reader.js && node --check software-update.js && node --check floppy-assistant.js && node --check server.mjs && node --check build.mjs",
     "test": "node --test checks/*.test.mjs"
   },
   "devDependencies": {

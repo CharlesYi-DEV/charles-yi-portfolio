@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 const root = fileURLToPath(new URL('.', import.meta.url));
-const files = new Set(['index.html', 'styles.css', 'app.js', 'blog-reader.js', 'software-update.js', 'favicon.ico', 'assets/favicon.svg', 'assets/favicon.png', 'assets/apple-touch-icon.png', 'assets/fonts/ChicagoKare-Regular.woff2', 'assets/fonts/ChicagoKare-LICENSE.txt']);
+const files = new Set(['index.html', 'styles.css', 'app.js', 'blog-reader.js', 'software-update.js', 'floppy-assistant.js', 'favicon.ico', 'assets/favicon.svg', 'assets/favicon.png', 'assets/apple-touch-icon.png', 'assets/fonts/ChicagoKare-Regular.woff2', 'assets/fonts/ChicagoKare-LICENSE.txt']);
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.woff2': 'font/woff2', '.txt': 'text/plain', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
 const server = http.createServer(async (req, res) => {
   const name = new URL(req.url, 'http://localhost').pathname.slice(1) || 'index.html';

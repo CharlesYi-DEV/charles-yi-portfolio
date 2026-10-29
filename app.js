@@ -1,5 +1,6 @@
 import { BlogReader } from './blog-reader.js';
 import { SoftwareUpdate } from './software-update.js';
+import { FloppyAssistant } from './floppy-assistant.js';
 const $ = (selector, root = document) => root.querySelector(selector);
 const desktop = $('#desktop');
 const windows = $('#windows');
@@ -9,6 +10,7 @@ let wallpaper = 0;
 const openers = new Map();
 const screenStage = $('#screen-stage');
 const screenOS = $('#screen-os');
+const floppyAssistant = new FloppyAssistant($('#floppy-assistant'), $('#floppy-toggle'), (id, trigger) => launchWindow(id, trigger), () => !screenOS.inert && !document.hidden && !screenStage.classList.contains('busy'), () => motionEnabled);
 const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
 let motionEnabled = !motionPreference.matches;
 let pendingLaunch = null;
@@ -22,7 +24,7 @@ try {
   const stored = JSON.parse(localStorage.getItem(storageKey) || 'null');
   if (stored && typeof stored === 'object') preferences = {
     balloons: stored.balloons === true,
-    tabs: Array.isArray(stored.tabs) ? [...new Set(stored.tabs)].filter(id => ['research', 'blog', 'scrapbook'].includes(id)) : ['research', 'blog', 'scrapbook'],
+    tabs: Array.isArray(stored.tabs) ? [...new Set(stored.tabs)].filter(id => ['research', 'studies', 'blog', 'scrapbook'].includes(id)) : ['research', 'blog', 'scrapbook'],
     wallpaper: [0, 1, 2].includes(stored.wallpaper) ? stored.wallpaper : 0,
     motion: stored.motion !== false,
     largeText: stored.largeText === true,
@@ -58,7 +60,7 @@ function icon(type, className = '') {
     contact: `<path fill="#000" d="M2 7h28v21H2z"/><path fill="#ddd" d="M3 8h26v19H3z"/><path fill="#fff" d="M3 8h26v2h-2v2h-3v2h-3v2h-3v2h-4v-2h-3v-2H8v-2H5v-2H3z"/><path fill="#555" d="M3 10h2v2h3v2h3v2h3v2h4v-2h3v-2h3v-2h3v-2h2v1h-1v2h-3v2h-3v2h-3v2h-6v-2h-3v-2H7v-2H4v-2H3zM3 25h2v-2h3v-2h3v-2h2v1h-1v2H9v2H6v2H3zM20 19h2v2h3v2h3v2h1v1h-3v-2h-3v-2h-3z"/><path fill="#a00" d="M23 4h7v5h-7z"/><path fill="#ff5b00" d="M24 5h5v3h-5z"/>`,
     about: `<path fill="#111" d="M6 2h20v28H6z"/><path fill="#ddd" d="M7 3h18v26H7z"/><path fill="#fff" d="M8 4h16v12H8z"/><path fill="#5555bd" d="M9 5h14v10H9z"/><path fill="#ffe4b4" d="M13 6h6v6h-6z"/><path fill="#000" d="M13 6h6v2h-6z"/><path fill="#e53" d="M11 13h10v2H11z"/><path fill="#000" d="M10 19h12v1H10zM10 22h12v1H10zM10 25h8v1h-8z"/>`
   };
-  return `<svg class="pixel-icon ${className}" viewBox="0 0 32 32" width="32" height="32" shape-rendering="crispEdges" aria-hidden="true">${type === 'future' ? drawings.research.replaceAll('#9292ed', '#d6b545').replaceAll('#c0c0ff', '#ffe794').replaceAll('#5757af', '#9d7b16').replaceAll('#ececff', '#fff5c2') : (type === 'hackathon' ? drawings.computer : drawings[type]) || drawings.resume}</svg>`;
+  return `<svg class="pixel-icon ${className}" viewBox="0 0 32 32" width="32" height="32" shape-rendering="crispEdges" aria-hidden="true">${type === 'future' ? drawings.research.replaceAll('#9292ed', '#d6b545').replaceAll('#c0c0ff', '#ffe794').replaceAll('#5757af', '#9d7b16').replaceAll('#ececff', '#fff5c2') : (type === 'hackathon' ? drawings.computer : type === 'studies' ? drawings.research : drawings[type]) || drawings.resume}</svg>`;
 }
 
 const contents = {
@@ -70,18 +72,18 @@ const contents = {
     <div class="welcome-body"><p class="intro">I’m a data science student and AI evaluator. My work connects natural language processing, information retrieval, and careful model evaluation.</p><div class="button-row"><button class="classic-button primary" data-open="research">My Work</button><button class="classic-button" data-open="about">About Me</button><button class="classic-button" data-open="contact">Contact</button></div></div>
     <div class="launch-banner">${icon('computer')}<div><strong>Currently in development</strong><p>MASCO–ESCO occupation mapping</p></div><button class="classic-button" data-open="future">Open Project</button></div><div class="window-footer"><span>Data science · Reliable AI</span><a href="mailto:charles.yi@msn.com">charles.yi@msn.com</a></div>`,
   note: () => `<div class="note-paper"><span class="note-date">ON MY DESK / OCTOBER 2026</span><h2>Now & next</h2><p>Completing my master’s at Monash, evaluating AI at RWS, and developing a MASCO–ESCO occupation-mapping study.</p><button class="note-link" data-open="future">Open work in progress</button></div>`,
-  research: () => `<div class="finder-info"><span>4 items</span><span>Current work & selected projects</span></div><div class="research-list">
+  research: () => `<div class="finder-info"><span>3 items</span><span>Current work & selected projects</span></div><div class="research-list">
     <button class="project-row" data-open="evaluation">${icon('about')}<h2>AI Evaluation</h2><span class="project-meta">RWS · Current</span><span class="project-description">Factual accuracy, relevance, and Mandarin cultural context in AI-generated text.</span></button>
     <button class="project-row" data-open="reroute">${icon('research')}<h2>ReRouteHer</h2><span class="project-meta">Team project · 2026</span><span class="project-description">Occupation and skills data for Malaysian mothers returning to work.</span></button>
-    <button class="project-row" data-open="sound">${icon('computer')}<h2>Sound Detection</h2><span class="project-meta">Thesis · 2024</span><span class="project-description">Python audio classification, feature extraction, and a model-training interface.</span></button>
-    <button class="project-row" data-open="future">${icon('future')}<h2>MASCO–ESCO</h2><span class="project-meta">In development</span><span class="project-description">Aligning Malaysian and European occupations. Independent evaluation is planned.</span></button></div><div class="window-footer"><span>Click an item to read more.</span></div>`,
+    <button class="project-row" data-open="sound">${icon('computer')}<h2>Sound Detection</h2><span class="project-meta">Thesis · 2024</span><span class="project-description">Python audio classification, feature extraction, and a model-training interface.</span></button></div><div class="window-footer"><span>Click an item to read more.</span></div>`,
+  studies: () => `<div class="finder-info"><span>1 project</span><span>Research</span></div><div class="research-list"><button class="project-row" data-open="future">${icon('future')}<h2>MASCO–ESCO</h2><span class="project-meta research-progress">In progress</span><span class="project-description">Mapping Malaysian occupations to ESCO. Initial model results are available; the annotation platform is ready for human review.</span></button></div><div class="window-footer"><span>Open a project to see its progress and next steps.</span></div>`,
   about: () => `<div class="document"><span class="eyebrow">THE HUMAN BEHIND THE DESKTOP</span><h1>Hello, I’m Charles.</h1><p class="lede">I’m a Master of Data Science student at Monash University.</p><p>My interests sit where natural language processing, information retrieval, and model evaluation meet. I like making data traceable and asking what an AI system’s output can actually tell us.</p><p>My path has included co-founding a cosmetics business, working in technical sales, building a sound classification application, and contributing to a career re-entry platform. Those experiences keep my technical questions connected to people.</p><h2>Currently exploring</h2><div class="tag-list"><span>Natural language processing</span><span>Information retrieval</span><span>Reliable AI</span><span>Model evaluation</span></div><div class="document-note">Mandarin & Cantonese · native/bilingual<br>English · professional working proficiency</div><div class="button-row"><button class="classic-button" data-open="resume">View résumé</button><button class="classic-button" data-open="contact">Say hello ↗</button></div></div>`,
   reroute: () => `<div class="document"><span class="eyebrow">RESEARCH NOTES / 01</span><h1>ReRouteHer</h1><p class="lede">Connecting transferable skills with opportunities for Malaysian mothers returning to work.</p><div class="document-note">Monash University · University team project · 2026<br>My role: Data Analyst</div><h2>The question</h2><p>How can a career-support platform connect a person’s experience with occupations and learning resources, while keeping its suggestions traceable?</p><h2>My contribution</h2><ul><li>Prepared data management plans across three iterations, covering source provenance, data quality, privacy, and retention.</li><li>Contributed Python and SQL preparation for MASCO occupations and ESCO skills, with taxonomy mappings, confidence labels, and duplicate checks.</li><li>Contributed to a comparison of TF-IDF with balanced logistic regression and MiniLM centroid retrieval across 19 occupation classes using 562 JobHop examples.</li><li>Curated employer-disclosure evidence for 200+ Bursa-listed companies, retaining citations and review status.</li></ul><h2>What the evidence doesn’t settle</h2><p>Performance and transfer from Belgian/Flemish career histories to Malaysian CVs were limited. Occupation mappings and model suggestions need human review; missing employer evidence is not a negative finding.</p><button class="classic-button primary" data-open="future">Related work: MASCO–ESCO</button></div>`,
   sound: () => `<div class="document"><span class="eyebrow">RESEARCH NOTES / 02</span><h1>Listening for a signal.</h1><p class="lede">A sound detection and analysis application, from microphone input to model evaluation.</p><div class="document-note">Undergraduate thesis · Dongguan University of Technology<br>December 2023–May 2024 · Supervisor: Associate Professor Jun Zhu</div><h2>What I built</h2><p>A Python application using Kivy and KivyMD for microphone recording, audio and video input, sound classification, and model retraining.</p><div class="pipeline"><span>Audio input</span><b>→</b><span>Preprocessing</span><b>→</b><span>Classification</span></div><h2>Methods</h2><p>I integrated two pretrained SVM classifiers from prior research for noise/voice and speech/scream classification, with MFCC features extracted using librosa. I also implemented a six-layer Keras MLP training workflow for scream/non-scream classification.</p><h2>What I learned to question</h2><p>Background noise, false detections, and fixed ten-second inputs all affect the system. Functional testing shows whether the app behaves as intended; it does not establish reliable performance in every environment.</p><div class="tag-list"><span>Python</span><span>librosa</span><span>SVM</span><span>Keras</span><span>Kivy</span></div></div>`,
   evaluation: () => `<div class="document"><span class="eyebrow">EXPERIENCE NOTES / 03</span><h1>Beyond a plausible answer.</h1><p class="lede">An answer can sound right and still miss the point.</p><div class="document-note">RWS · Data Service Specialist · Part-time<br>August 2026–present</div><p>My work includes evaluating AI-generated text for factual accuracy, relevance, and Mandarin cultural appropriateness, alongside data collection, labelling, and annotation for model assessment and localisation.</p><h2>Three questions I bring to evaluation</h2><ol class="questions"><li>Is the answer supported by evidence?</li><li>Does it address what was actually asked?</li><li>Does it make sense in the reader’s cultural context?</li></ol><p>This experience connects to my wider interest in reliable AI systems: understanding the limits of an output, alongside its usefulness.</p></div>`,
   resume: () => `<div class="document"><span class="eyebrow">CURRICULUM VITAE / SELECTED EXPERIENCE</span><h1>Charles Yi</h1><p class="lede">Data science · Language · Reliable AI</p><h2>Education</h2><div class="resume-entry"><strong>Master of Data Science</strong><span>2025–present</span><p>Monash University · Expected December 2026</p></div><div class="resume-entry"><strong>BEng, Computer Science and Technology</strong><span>2019–2024</span><p>Dongguan University of Technology</p></div><h2>Experience</h2><div class="resume-entry"><strong>Data Service Specialist · RWS</strong><span>2026–present</span><p>AI evaluation, annotation, and localisation · Part-time</p></div><div class="resume-entry"><strong>Technical Sales Engineer</strong><span>2024</span><p>Dongguan Songhu Plastic Machinery Co Ltd</p></div><div class="resume-entry"><strong>Co-Founder · CYX Cosmetics Store</strong><span>2021–2026</span><p>Customer acquisition, content, and commercial performance</p></div><h2>Technical superpowers</h2><p><b>Data:</b> Python, SQL, PostgreSQL, pandas, data validation, taxonomy mapping, evidence traceability.</p><p><b>ML:</b> scikit-learn, TF-IDF, logistic regression, sentence embeddings, SVMs, Keras, held-out evaluation.</p><p><b>Audio & systems:</b> librosa, MFCC extraction, Kivy, Docker, cloud deployment.</p><button class="classic-button" data-open="contact">Get in touch ↗</button></div>`,
   contact: () => `<div class="document contact-document">${icon('contact')}<span class="eyebrow">LET’S COMPARE NOTES</span><h1>Say hello.</h1><p class="lede">Have a research question, a project idea, or a different way of looking at a problem?</p><a class="contact-link" href="mailto:charles.yi@msn.com">charles.yi@msn.com ↗</a><div class="button-row"><a class="classic-button" href="https://github.com/CharlesYi-DEV" target="_blank" rel="noopener noreferrer">View my GitHub ↗</a><a class="classic-button" href="https://www.linkedin.com/in/charlesyi-dev/" target="_blank" rel="noopener noreferrer">Find me on LinkedIn ↗</a></div><p class="muted">UTC+8</p></div>`,
-  help: () => `<div class="document"><span class="eyebrow">A QUICK ORIENTATION</span><h1>Welcome to my desktop.</h1><ul><li>Click or tap an icon once to open it. Drag desktop icons to move them; their positions are remembered in a preference cookie for one year. Right-click the desktop → Arrange Desktop Icons resets the layout. Keyboard users can Tab to an icon, use arrow keys to move it (Shift for fine adjustment), and press Enter to open it. Phones keep the compact icon grid.</li><li>Drag a striped title bar to move a window. The square at the left closes it; the square at the right expands it.</li><li>Drag a window’s bottom-right grip to resize it, or focus the grip and use arrow keys (Shift for smaller steps). Use the File menu to reopen windows, or View → Arrange windows to restore their positions and sizes.</li><li>On narrow screens, windows stack vertically. Opening an application scrolls to it.</li><li>Right-click the desktop for shortcuts and display settings. Right-click an icon or project for Open and Get Info, or a window for its controls. Shift+F10 opens the same menu from the keyboard; use arrow keys to choose an item and Escape to dismiss it. Selected text and links keep the browser’s normal menu.</li><li>Press Escape to close a menu or the active window.</li></ul><h2>Desktop extras</h2><ul><li>Help → Show Balloon Help explains controls when you hover or focus them. Escape dismisses a balloon.</li><li>Click a bottom folder tab to open it upwards; click again to tuck it away. Drag My Work, Blog, or Scrapbook to the bottom edge to make a tab, or use the title-bar tab button. The same button returns a pop-up to a normal window.</li><li>Software Update checks for new blog posts and shows dated project milestones. It opens writing here, without installing anything.</li><li>Blog loads my writing from Charles’s Blog. Open a post to read it here, or use Open blog for the standalone site. Refresh checks for new writing; saved posts remain readable if the connection fails.</li><li>Sherlock searches this portfolio by topic. Use File → Find or Ctrl/Command+Shift+F.</li><li>Keep projects in Scrapbook using the button in a project or its right-click menu. Saved projects and appearance preferences stay in this browser.</li><li>Control Panels changes the wallpaper, reading size, and opening animations.</li><li>The Window menu lists every open window. Double-click a title bar or use its roll-up button to tuck a window away.</li><li>View → Sleep starts a starfield. Click, tap, or press any key to return.</li></ul><h2>About the design</h2><p>A personal tribute to the tactile, curious world of classic Macintosh desktops, inspired by the Platinum interface of <a href="https://en.wikipedia.org/wiki/Mac_OS_9" target="_blank" rel="noopener noreferrer">Mac OS 9</a>. The recessed beige CRT frame also takes inspiration from <a href="https://taoofmac.com/space/reviews/2025/11/24/1900" target="_blank" rel="noopener noreferrer">the Maclock</a>. Original interface artwork; built for the modern web.</p><p>View → Replay startup runs the short boot sequence. View → Opening animations turns the launch effects on or off; your system’s reduced-motion preference is respected. The display uses the available browser space. Expand an individual document with the square at the right of its title bar.</p><p>The My Work folder contains current experience and selected projects. In Progress describes research still under development; planned evaluation is distinguished from completed computational work.</p></div>`,
+  help: () => `<div class="document"><span class="eyebrow">A QUICK ORIENTATION</span><h1>Welcome to my desktop.</h1><ul><li>Click or tap an icon once to open it. Drag desktop icons to move them; their positions are remembered in a preference cookie for one year. Right-click the desktop → Arrange Desktop Icons resets the layout. Keyboard users can Tab to an icon, use arrow keys to move it (Shift for fine adjustment), and press Enter to open it. Phones keep the compact icon grid.</li><li>Drag a striped title bar to move a window. The square at the left closes it; the square at the right expands it.</li><li>Drag a window’s bottom-right grip to resize it, or focus the grip and use arrow keys (Shift for smaller steps). Use the File menu to reopen windows, or View → Arrange windows to restore their positions and sizes.</li><li>On narrow screens, windows stack vertically. Opening an application scrolls to it.</li><li>Right-click the desktop for shortcuts and display settings. Right-click an icon or project for Open and Get Info, or a window for its controls. Shift+F10 opens the same menu from the keyboard; use arrow keys to choose an item and Escape to dismiss it. Selected text and links keep the browser’s normal menu.</li><li>Press Escape to close a menu or the active window.</li></ul><h2>Desktop extras</h2><ul><li>Floppy wanders quietly between visible icons. Hover directly over it for a small reaction and to pause its walk. Opening animations must be on for walking. It only speaks when clicked. Click the disk for a thought, use Next to explore more, or follow its shortcut to a project or app. Later dismisses the balloon. Help → Hide Floppy Assistant remembers your preference.</li><li>Help → Show Balloon Help explains controls when you hover or focus them. Escape dismisses a balloon.</li><li>Click a bottom folder tab to open it upwards; click again to tuck it away. Drag My Work, Research, Blog, or Scrapbook to the bottom edge to make a tab, or use the title-bar tab button. The same button returns a pop-up to a normal window.</li><li>Software Update checks for new blog posts and shows dated project milestones. It opens writing here, without installing anything.</li><li>Blog loads my writing from Charles’s Blog. Open a post to read it here, or use Open blog for the standalone site. Refresh checks for new writing; saved posts remain readable if the connection fails.</li><li>Sherlock searches this portfolio by topic. Use File → Find or Ctrl/Command+Shift+F.</li><li>Keep projects in Scrapbook using the button in a project or its right-click menu. Saved projects and appearance preferences stay in this browser.</li><li>Control Panels changes the wallpaper, reading size, and opening animations.</li><li>The Window menu lists every open window. Double-click a title bar or use its roll-up button to tuck a window away.</li><li>View → Sleep starts a starfield. Click, tap, or press any key to return.</li></ul><h2>About the design</h2><p>A personal tribute to the tactile, curious world of classic Macintosh desktops, inspired by the Platinum interface of <a href="https://en.wikipedia.org/wiki/Mac_OS_9" target="_blank" rel="noopener noreferrer">Mac OS 9</a>. The recessed beige CRT frame also takes inspiration from <a href="https://taoofmac.com/space/reviews/2025/11/24/1900" target="_blank" rel="noopener noreferrer">the Maclock</a>. Original interface artwork; built for the modern web.</p><p>View → Replay startup runs the short boot sequence. View → Opening animations turns the launch effects on or off; your system’s reduced-motion preference is respected. The display uses the available browser space. Expand an individual document with the square at the right of its title bar.</p><p>The My Work folder contains current experience and selected projects. The Research folder contains projects labelled In progress; planned evaluation is distinguished from completed computational work.</p></div>`,
   future: () => `<div class="document"><span class="eyebrow">IN DEVELOPMENT / RESEARCH PROJECT</span><h1>MASCO–ESCO</h1><p class="lede">Building a reproducible bridge between Malaysian occupations and European occupation and skills classifications.</p><div class="document-note"><b>Status: research in progress</b><br>Computational retrieval completed; independent human evaluation is planned.</div><h2>What I’m developing</h2><p>A pipeline to align individual occupations in MASCO 2020 with ESCO 1.2.1, extending the occupation-mapping questions explored in ReRouteHer. The study compares lexical, dense, hybrid, and reranked retrieval, with attention to occupational scope and Malaysian terminology.</p><h2>Work completed so far</h2><ul><li>Automated retrieval across 6,620 extracted MASCO occupations against 3,039 ESCO occupations.</li><li>Initial Qwen3 reranking for a 330-occupation sample.</li><li>A research proposal for independently evaluating the candidate mappings.</li></ul><h2>What comes next</h2><p>The annotation platform is set up for 15 calibration occupations and 150 evaluation occupations. Three annotators will review the same occupations independently, followed by adjudication. Human review is still ahead.</p><p>Planned outputs include a documented evaluation reference set, reproducible comparisons, and analysis of ambiguous, broader, and narrower occupation matches.</p><div class="document-note">This is ongoing research, not a published or fully human-validated national crosswalk. Retrieval completion does not establish mapping accuracy.</div><a class="classic-button" href="https://github.com/CharlesYi-DEV/masco-esco-crosswalk" target="_blank" rel="noopener noreferrer">View project repository</a><p class="muted">Project status: 28 October 2026.</p></div>`
 };
 
@@ -95,6 +97,7 @@ const config = {
   info: { title: 'Get Info', width: 430, x: .28, y: 68 },
   welcome: { title: 'About This Researcher', width: 620, x: .02, y: 18 },
   note: { title: 'Stickies', width: 230, x: .73, y: 255 },
+  studies: { title: 'Research', width: 620, x: .24, y: 70 },
   research: { title: 'My Work', width: 540, x: .50, y: 18 },
   future: { title: 'MASCO–ESCO — In Progress', width: 700, x: .16, y: 64 },
   about: { title: 'About Charles', width: 640, x: .19, y: 95 },
@@ -113,7 +116,8 @@ const itemInfo = {
   updates: {name: 'Software Update', kind: 'Portfolio news', status: 'Latest writing and milestones', detail: 'Check Charles’s blog for new writing and see recent project milestones.'},
   blog: { name: 'Blog', kind: 'Online notebook', status: 'From Charles’s Blog', detail: 'Notes on data, language, and building things. Read the latest posts inside this desktop.' },
   welcome: { name: 'Charles HD', kind: 'Personal portfolio', status: 'Current', detail: 'Charles Yi’s introduction, education, and research interests.' },
-  research: { name: 'My Work', kind: 'Project folder · 4 items', status: 'Current and selected work', detail: 'AI evaluation, ReRouteHer, sound detection, and MASCO–ESCO research.' },
+  research: { name: 'My Work', kind: 'Project folder · 3 items', status: 'Current and selected work', detail: 'AI evaluation, ReRouteHer, and sound detection.' },
+  studies: { name: 'Research', kind: 'Research folder · 1 project', status: 'Ongoing research', detail: 'MASCO–ESCO occupation mapping, with project progress and plans for human review.' },
   future: { name: 'MASCO–ESCO', kind: 'Research project', status: 'In development', detail: 'Occupation alignment research. Computational retrieval is complete; independent human evaluation is planned.' },
   resume: { name: 'Charles Yi — Résumé', kind: 'Résumé', status: 'Selected experience', detail: 'Education, work experience, and technical skills.' },
   contact: { name: 'Contact', kind: 'Contact card', status: 'Get in touch', detail: 'Email, GitHub, and LinkedIn links for Charles Yi.' },
@@ -311,7 +315,7 @@ document.addEventListener('click', event => {
   }
 });
 
-const apps = [['welcome', 'Charles HD'], ['research', 'My Work'], ['future', 'In Progress'], ['resume', 'Résumé'], ['contact', 'Contact'], ['blog', 'Blog'], ['hackathon', 'Hackathon'], ['sherlock', 'Sherlock']];
+const apps = [['welcome', 'Charles HD'], ['research', 'My Work'], ['studies', 'Research'], ['hackathon', 'Hackathon'], ['resume', 'Résumé'], ['contact', 'Contact'], ['blog', 'Blog'], ['sherlock', 'Sherlock']];
 $('#desktop-icons').innerHTML = apps.map(([id, label]) => `<button class="desktop-icon" data-open="${id}">${icon(id)}<span>${label}</span></button>`).join('');
 
 // Only icon IDs and proportional coordinates are stored in this preference cookie.
@@ -403,13 +407,14 @@ $('#desktop-icons').addEventListener('keydown', event => {
 });
 
 // Classic pop-up folders keep their contents alive while tucked away.
-const folderIds = ['research', 'blog', 'scrapbook'];
-const folderNames = {research: 'My Work', blog: 'Blog', scrapbook: 'Scrapbook'};
+const folderIds = ['research', 'studies', 'blog', 'scrapbook'];
+const folderNames = {research: 'My Work', studies: 'Research', blog: 'Blog', scrapbook: 'Scrapbook'};
 function renderFolderTabs() {
   $('#folder-tabs').innerHTML = preferences.tabs.map(id => `<button class="folder-tab" data-folder-tab="${id}" aria-expanded="false" data-balloon="Open ${folderNames[id]} above this tab. Click again to tuck it away.">${icon(id)}<span>${folderNames[id]}</span></button>`).join('');
   syncFolderTabs();
 }
 function syncFolderTabs() {
+  floppyAssistant.position($('[data-folder-tab="blog"]'), desktop);
   document.querySelectorAll('[data-folder-tab]').forEach(button => {
     const win = $(`[data-id="${button.dataset.folderTab}"]`, windows);
     button.setAttribute('aria-expanded', String(Boolean(win && !win.hidden && win.classList.contains('folder-popup'))));
@@ -551,6 +556,7 @@ function focusWindow(win, focusControl = false) {
 }
 function openWindow(id, trigger, initial = false) {
   if (!config[id]) return;
+  if (!initial) floppyAssistant.appOpened();
   let win = $(`[data-id="${id}"]`, windows);
   if (!win) {
     win = document.createElement('section');
@@ -733,6 +739,7 @@ function finishBoot() {
   $('#announcement').textContent = 'Desktop ready';
   if (bootFocus?.isConnected) bootFocus.focus({ preventScroll: true });
   bootFocus = null;
+  floppyAssistant.start();
 }
 function runBoot(trigger = null) {
   dismissContextMenu();
@@ -757,6 +764,7 @@ function setMotion(enabled) {
   $('#motion-toggle').setAttribute('aria-pressed', String(motionEnabled));
   $('#motion-toggle').textContent = motionEnabled ? 'Opening animations: on' : 'Opening animations: off';
   syncPreferencesControls();
+  floppyAssistant.motionChanged();
   if (!motionEnabled) {
     const pending = pendingLaunch;
     cancelLaunch();
@@ -835,7 +843,7 @@ function openContextMenu(target, x, y) {
   } else {
     add('Find with Sherlock', () => launchWindow('sherlock', origin));
     add('My Work', () => launchWindow('research', origin));
-    add('Work in Progress', () => launchWindow('future', origin));
+    add('Research', () => launchWindow('studies', origin));
     add('Résumé', () => launchWindow('resume', origin));
     add('Contact', () => launchWindow('contact', origin));
     add('Blog', () => launchWindow('blog', origin));
@@ -967,6 +975,7 @@ document.addEventListener('click', e => {
   if (button.dataset.zoom) toggleWindowSize(button.closest('.window'));
   const action = button.dataset.action;
   if (action === 'balloons') { preferences.balloons = !preferences.balloons; persistPreferences(); syncBalloonToggle(); $('#balloon-toggle').closest('.menu').querySelector('.menu-toggle').focus(); }
+  if (action === 'floppy') { floppyAssistant.toggleVisibility(); floppyAssistant.position($('[data-folder-tab="blog"]'), desktop); button.closest('.menu').querySelector('.menu-toggle').focus(); }
   if (action === 'sleep') startSleep(button);
   if (action === 'boot') runBoot(button);
   if (action === 'motion') { setMotion(!motionEnabled); button.closest('.menu')?.querySelector('.menu-toggle').focus(); }
@@ -981,6 +990,7 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'f') { e.preventDefault(); launchWindow('sherlock', document.activeElement); return; }
   if (e.key === 'Escape') {
     if (!balloon.hidden) { hideBalloon(); return; }
+    if (floppyAssistant.dismiss(true)) return;
     if (bootTimer !== null) { finishBoot(); return; }
     if (pendingLaunch) { cancelLaunch(); $('#announcement').textContent = 'Opening cancelled'; return; }
     const menu = $('.menu-toggle[aria-expanded="true"]');
@@ -991,7 +1001,9 @@ function updateLayout() {
   hideBalloon();
   dismissContextMenu();
   document.body.classList.toggle('compact', mobile());
+  desktop.style.setProperty('--desktop-height', `${Math.max(0, screenStage.clientHeight - $('.menubar').offsetHeight)}px`);
   layoutDesktopIcons();
+  floppyAssistant.position($('[data-folder-tab="blog"]'), desktop);
   if (!mobile()) windows.querySelectorAll('.window:not(.maximized):not(.folder-popup):not([hidden])').forEach(win => {
     if (win.dataset.moved !== 'true' && win.dataset.resized !== 'true') { const shaded = win.classList.contains('shaded'); place(win, win.dataset.id); if (shaded) { win.classList.add('shaded'); syncShadeControl(win); } return; }
     win.style.width = `${Math.min(parseFloat(win.style.width) || config[win.dataset.id].width, desktop.clientWidth - 16)}px`;
