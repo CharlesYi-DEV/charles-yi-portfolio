@@ -12,12 +12,14 @@ const thoughts = [
   {title:'The short version.', text:'Education, experience, and the tools Charles works with. All in one document.', action:'Résumé', app:'resume'}
 ];
 
-// Original integer-pixel artwork, matching the desktop's existing SVG icons.
+// Pixel disk and face, with simple curved limbs for a softer silhouette.
 const disk = `<svg class="floppy-sprite" viewBox="-5 0 44 42" width="88" height="84" shape-rendering="crispEdges" aria-hidden="true">
-  <path class="floppy-arm-left" fill="#222" d="M3 19v1H0v5h-4v-1h3v-5z"/>
-  <path class="floppy-arm-right" fill="#222" d="M32 19h4v5h3v1h-4v-5h-3z"/>
-  <path class="floppy-leg-left" fill="#222" d="M11 32h1v6H7v-1h4z"/>
-  <path class="floppy-leg-right" fill="#222" d="M24 32h1v5h4v1h-5z"/>
+  <g fill="none" stroke="#222" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" shape-rendering="geometricPrecision">
+    <path class="floppy-arm-left" d="M3 19Q-1 18-1 22Q0 25-4 24"/>
+    <path class="floppy-arm-right" d="M32 19Q36 18 36 22Q35 25 38 24"/>
+    <path class="floppy-leg-left" d="M11 32Q12 35 10 37Q8 39 6 37"/>
+    <path class="floppy-leg-right" d="M24 32Q23 35 25 37Q27 39 29 37"/>
+  </g>
   <path fill="#111" d="M4 1h24v1h2v2h2v28H3V2h1z"/>
   <path fill="var(--floppy-plastic, #6879ad)" d="M4 2h24v2h3v27H4z"/>
   <path fill="#aab6db" d="M4 2h3v1H5v27H4zM5 2h23v1H5z"/>
