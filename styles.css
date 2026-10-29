@@ -262,6 +262,8 @@ body:not(.compact) .desktop-icons.dragging-icons{z-index:20000}
 @keyframes floppy-notice{0%,30%,65%,100%{transform:scaleY(1)}40%,55%{transform:scaleY(.33)}}
 @keyframes floppy-click{0%,20%,85%,100%{transform:translateX(0)}40%,60%{transform:translateX(-2px)}}
 .floppy-assistant.walking .floppy-sprite{animation:floppy-shuffle .6s steps(1,end) infinite}
+.floppy-assistant.blog-nudge .floppy-sprite{animation:floppy-blog-hop .65s steps(3,end) 1}
+@keyframes floppy-blog-hop{0%,100%{transform:translateY(0)}45%,55%{transform:translateY(-4px)}}
 .floppy-assistant:hover .floppy-sprite,.floppy-assistant:focus-within .floppy-sprite{animation-play-state:paused}
 @keyframes floppy-shuffle{0%,49%{transform:translateY(0)}50%,100%{transform:translateY(-1px)}}
 .reduced-motion .floppy-assistant *{animation:none!important}

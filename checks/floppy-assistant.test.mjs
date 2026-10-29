@@ -60,6 +60,15 @@ test('Later quiets the companion, focused controls stay readable, and opening an
   s.dom.window.close();
 });
 
+test('outside clicks dismiss speech without moving focus, and arriving at Blog gives one silent nudge',()=>{
+  const s=setup();s.assistant.button.click();s.d.querySelector('#reading').focus();s.d.querySelector('#reading').click();
+  assert.equal(s.assistant.invitation.hidden,true);assert.equal(s.d.activeElement.id,'reading');
+  s.assistant.lastVisited='studies';s.assistant.wander();s.animate(20000);
+  assert.equal(s.assistant.lastVisited,'blog');assert.equal(s.assistant.root.classList.contains('blog-nudge'),true);
+  assert.equal(s.assistant.invitation.hidden,true);s.advance(800);assert.equal(s.assistant.root.classList.contains('blog-nudge'),false);
+  s.dom.window.close();
+});
+
 test('hidden preference persists; showing restores roaming; unavailable storage and sleeping desktop are safe',()=>{
   const s=setup();s.assistant.toggleVisibility();assert.equal(s.w.localStorage.getItem('charles-floppy-hidden-v1'),'1');assert.equal(s.timers.size,0);
   const reload=setup({hidden:true});reload.assistant.start();assert.equal(reload.timers.size,0);reload.assistant.toggleVisibility();assert.equal(reload.assistant.root.hidden,false);assert.equal(reload.timers.size,1);

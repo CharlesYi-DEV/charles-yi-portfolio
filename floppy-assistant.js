@@ -45,6 +45,9 @@ export class FloppyAssistant {
     root.addEventListener('pointerenter', () => { this.hovered = true; this.notice(); });
     root.addEventListener('pointerleave', () => { this.hovered = false; root.classList.remove('noticed'); });
     root.addEventListener('focusin', () => this.notice());
+    const dismissOutside = event => { if (!root.contains(event.target)) this.dismiss(); };
+    root.ownerDocument.addEventListener('pointerdown', dismissOutside, {passive:true});
+    root.ownerDocument.addEventListener('click', dismissOutside);
     root.ownerDocument.addEventListener('scroll', () => {
       this.stopWalking();
       this.queueWalk(12000);
@@ -170,9 +173,10 @@ export class FloppyAssistant {
   }
   stopWalking() {
     this.view.clearTimeout(this.walkTimer);
+    this.view.clearTimeout(this.jumpTimer);
     this.view.cancelAnimationFrame?.(this.walkFrame);
     this.walkTimer = null; this.walkFrame = null;
-    this.root.classList.remove('walking');
+    this.root.classList.remove('walking','blog-nudge');
   }
   motionChanged() {
     this.stopWalking();
@@ -225,6 +229,10 @@ export class FloppyAssistant {
       const id = this.lastVisited === 'welcome' ? 'about' : this.lastVisited;
       const index = thoughts.findIndex(thought=>thought.app===id);
       if (index >= 0) this.thought = index;
+      if (this.lastVisited === 'blog') {
+        this.root.classList.add('blog-nudge');
+        this.jumpTimer = this.view.setTimeout(() => this.root.classList.remove('blog-nudge'),800);
+      }
       // Stroll quietly. Proximity changes the optional click conversation only.
       this.queueWalk(6000);
     };
