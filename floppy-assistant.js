@@ -39,6 +39,9 @@ const poses = {
   carry: {tilt: -4, arms: 'M3 19Q-2 19 0 13Q1 10 3 9 M32 19Q37 17 35 12Q34 10 32 9', legs: 'M11 31Q8 34 9 36Q10 38 13 35 M24 31Q22 34 23 38Q24 40 27 38', gaze: 1},
   swing: {tilt: 3, arms: 'M3 19Q-1 18 0 13Q1 11 3 10 M32 19Q37 18 35 12Q34 9 32 8', legs: 'M11 31Q10 35 12 38Q14 40 16 37 M24 31Q27 34 26 36Q24 38 22 35', gaze: 1},
   perch: {lift: 2, arms: 'M3 19Q-1 25 4 27 M32 19Q36 25 31 27', legs: bentKnees},
+  paddle: {tilt: -5, arms: 'M3 20Q-2 18 -4 22 M32 21Q35 24 38 20', legs: bentKnees, gaze: 1},
+  glide: {tilt: 4, arms: 'M3 20Q-1 25 -4 22 M32 20Q36 16 38 18', legs: bentKnees, gaze: 1},
+  reach: {tilt: 4, arms: handOnHip + 'M32 19Q34 16 38 15', gaze: 2},
   snooze: {tilt: 5, lift: 3, arms: 'M3 19Q-2 25 5 25Q8 25 11 23 M32 19Q37 25 30 25Q26 25 24 23', legs: bentKnees, blink: true},
 };
 
@@ -69,8 +72,22 @@ const disk = `<svg class="floppy-sprite" viewBox="-5 0 44 42" width="88" height=
   <path fill="#c6bc9e" d="M8 28h19v1H8zM26 16h1v12h-1z"/><path fill="#d88970" d="M9 17h16v1H9z"/>
   <path fill="#333" d="M15 25h5v1h-5z"/>
   <path fill="#111" d="M5 3h1v2H5zM28 26h2v3h-2z"/>
+  </g>
+  <clipPath id="floppy-orb-edge"><path d="M12 3h11v2h5v3h4v4h2v5h1v9h-2v5h-3v4h-5v2H11v-2H6v-3H3v-5H1v-5H0v-6h2v-5h3V8h3V5h4z"/></clipPath>
+  <g id="floppy-orb-map">
+    <path fill="#8398b6" d="M-3 13h9v3h4v4H5v2H0zM28 25h9v3h5v5h-7v-2h-7z"/>
+    <path fill="#394862" d="M9 5h17v9H9z"/><path fill="#bfccd0" d="M10 5h15v8H10z"/>
+    <path fill="#43516b" d="M19 6h4v6h-4z"/>
+    <path fill="#494e62" d="M7 17h21v13H7z"/><path fill="#f1e7bf" d="M8 18h19v11H8z"/>
+    <path fill="#c88b71" d="M8 18h19v2H8z"/><path fill="#383944" d="M12 21h1v3h-1zM22 21h1v3h-1zM15 26h5v1h-5z"/>
   </g></defs>
   <g class="floppy-cels">${frames.map(drawFrame).join('')}</g>
+  <g class="floppy-globe" clip-path="url(#floppy-orb-edge)">
+    <path fill="#7386ab" d="M0 2h36v37H0z"/>
+    <g class="globe-spin"><use href="#floppy-orb-map"/><use href="#floppy-orb-map" x="44"/></g>
+    <path fill="#263953" opacity=".42" d="M25 2h11v36H7v-4h13v-3h5v-4h4V14h-2V8h-2z"/>
+    <path fill="#e3e1ca" opacity=".8" d="M6 11h2v4H6zM4 15h2v5H4z"/>
+  </g>
 </svg>`;
 
 export class FloppyAssistant {
@@ -134,6 +151,10 @@ export class FloppyAssistant {
     root.ownerDocument.addEventListener('pointerdown', dismissOutside, {passive:true});
     root.ownerDocument.addEventListener('click', dismissOutside);
     root.ownerDocument.addEventListener('scroll', () => {
+      if (this.scene?.visible()) {
+        if (this.root.dataset.scenePaused === 'true') this.sceneControl('redraw');
+        return;
+      }
       this.stopWalking();
       this.queueWalk(12000);
     }, {capture:true,passive:true});
@@ -263,7 +284,7 @@ export class FloppyAssistant {
     this.toggle.setAttribute('aria-pressed', String(!this.root.hidden));
   }
   notice() {
-    if (!this.motion() || this.drag?.moved) return;
+    if (!this.motion() || this.scene || this.drag?.moved) return;
     this.view.clearTimeout(this.noticeTimer);
     this.root.classList.add('noticed');
     this.noticeTimer = this.view.setTimeout(() => this.root.classList.remove('noticed'),1200);
@@ -276,6 +297,7 @@ export class FloppyAssistant {
     if (this.root.hidden) this.hovered = false;
     this.writeStorage('localStorage', HIDDEN_KEY, this.root.hidden ? '1' : '0');
     this.syncToggle();
+    this.root.dispatchEvent(new this.view.Event('floppyvisibilitychange'));
     this.start();
   }
   start() {
@@ -331,7 +353,7 @@ export class FloppyAssistant {
       this.frameSize = size;
       this.start();
     } else this.moveTo(parseFloat(this.root.style.left), parseFloat(this.root.style.top));
-    if (this.parked && !this.drag) {
+    if (this.parked && !this.drag && !this.scene) {
       this.moveTo(bounds.left + this.parked.x * (bounds.right - bounds.left), bounds.top + this.parked.y * (bounds.bottom - bounds.top));
     }
     this.positionBalloon();
@@ -365,6 +387,18 @@ export class FloppyAssistant {
     this.walkTimer = this.view.setTimeout(() => { this.walkTimer = null; this.chooseMotion(); },delay);
   }
   stopWalking() {
+    if (this.scene) {
+      const stage = this.scene;
+      this.scene = null;
+      this.sceneControl = null;
+      delete this.root.dataset.scenePaused;
+      stage.leave();
+      this.root.classList.remove('visiting', 'in-water', 'planetary');
+      this.button.querySelector('svg').style.removeProperty('--activity-pose');
+      this.root.style.removeProperty('--world-scroll');
+      this.root.style.removeProperty('--guest-size');
+      if (!this.drag && this.frame) this.moveTo(this.returnSpot.x, this.returnSpot.y);
+    }
     this.view.clearTimeout(this.walkTimer);
     this.view.clearTimeout(this.jumpTimer);
     this.view.clearTimeout(this.moodTimer);
@@ -405,6 +439,87 @@ export class FloppyAssistant {
   finishMood(delay = 5000 + Math.floor(this.random()*5000)) {
     this.stopWalking();
     this.queueWalk(delay);
+  }
+  // The playhead belongs to the visit, so pausing or dragging film to a new
+  // frame never spawns a second assistant or sends the existing one home.
+  visitScene(scene, invited = false, stillAt) {
+    const still = Number.isFinite(stillAt);
+    if (this.root.hidden || (this.parked && !invited) || this.drag || (!this.motion() && !still) ||
+        !this.ready() || (!invited && this.isPaused()) || !this.frame || !this.invitation.hidden || !scene.visible()) return false;
+    this.stopWalking();
+    const home = {x: parseFloat(this.root.style.left), y: parseFloat(this.root.style.top)};
+    this.returnSpot = home;
+    this.scene = scene;
+    const sprite = this.button.querySelector('svg');
+    const homeSize = sprite.clientWidth || this.root.offsetWidth;
+    this.root.classList.add('visiting');
+    this.setMood('visiting');
+
+    const jump = 620, duration = 6200;
+    let time = still ? jump + duration * stillAt : 0, end = jump + duration;
+    let paused = still, previous, lastPaint = -Infinity;
+    const clamp = n => Math.max(0, Math.min(1, n));
+    const ease = t => t*t*(3-2*t);
+    const progress = () => clamp((time - jump) / duration);
+    const status = () => {
+      this.root.dataset.scenePaused = String(paused);
+      scene.playback?.(paused ? 'paused' : 'playing');
+    };
+    const render = () => {
+      const enter = clamp(time / jump), exit = clamp((time - end) / jump);
+      const inside = enter === 1 && exit === 0;
+      const age = Math.max(0, Math.min(end, time) - jump);
+      const actor = scene.paint(progress(), inside, age);
+      // A small wind-up, an eased arc and a planted landing also work on
+      // large displays, where the old fixed-speed hop crossed a long way.
+      const flight = enter < 1 ? clamp((enter-.12)/.88) : 1-exit;
+      const weight = ease(flight);
+      const size = Math.round(homeSize + (actor.size-homeSize)*weight);
+      this.root.style.setProperty('--guest-size', size+'px');
+      const x = actor.x - this.root.offsetWidth/2;
+      const y = actor.y - sprite.clientHeight*(actor.planet ? .5 : actor.water ? .66 : .92);
+      const arc = 4*flight*(1-flight)*Math.min(80, 18+Math.hypot(x-home.x,y-home.y)*.11);
+      this.faceDirection(inside ? actor.facing : (x-home.x)*(exit ? -1 : 1));
+      const pose = inside ? actor.pose : flight < .12 ? 'brace' : 'hop';
+      // The cel offsets live on the SVG; var(--pose) must resolve there.
+      sprite.style.setProperty('--activity-pose', 'var(--'+pose+')');
+      this.root.classList.toggle('in-water', Boolean(inside && actor.water));
+      this.root.classList.toggle('planetary', Boolean(inside && actor.planet));
+      if (inside && actor.planet) this.root.style.setProperty('--world-scroll', -2*Math.floor(age%2400/2400*22)+'px');
+      const frame = this.frame.getBoundingClientRect();
+      this.root.style.left = Math.round(Math.max(frame.left+4,Math.min(frame.right-this.root.offsetWidth-4,home.x+(x-home.x)*weight)))+'px';
+      this.root.style.top = Math.round(Math.max(frame.top+30,home.y+(y-home.y)*weight-arc))+'px';
+    };
+    const step = now => {
+      this.walkFrame = null;
+      if (!scene.visible() || !this.ready() || !this.motion()) { this.finishMood(); return; }
+      if (!this.root.contains(this.root.ownerDocument.activeElement))
+        time += previous === undefined ? 0 : Math.min(100, now-previous);
+      previous = now;
+      if (time >= end+jump) { this.finishMood(); return; }
+      if (time-lastPaint >= 40) { render(); lastPaint = time; }
+      this.walkFrame = this.view.requestAnimationFrame(step);
+    };
+    this.sceneControl = (action, value) => {
+      this.view.cancelAnimationFrame(this.walkFrame);
+      this.walkFrame = null;
+      if (action === 'seek') { time = jump + duration*clamp(value); end = jump + duration; paused = true; }
+      if (action === 'pause') paused = true;
+      if (action === 'resume' || action === 'interact') {
+        if (action === 'interact') {
+          time = Math.min(time,end);
+          end = Math.max(end, time + 2300);
+        } else if (progress() >= 1) { time = jump; end = jump+duration; }
+        paused = !this.motion();
+      }
+      previous = undefined;
+      lastPaint = -Infinity;
+      status(); render();
+      if (!paused) this.walkFrame = this.view.requestAnimationFrame(step);
+    };
+    status(); render();
+    if (!paused) this.walkFrame = this.view.requestAnimationFrame(step);
+    return true;
   }
   bounce() {
     this.setMood('bounce');

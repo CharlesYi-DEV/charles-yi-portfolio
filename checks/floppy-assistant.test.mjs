@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
+import {mountWindowScene} from '../window-scenes.js';
 import {FloppyAssistant} from '../floppy-assistant.js';
 
 function setup({hidden=false, blocked=false, motion=true, random=()=>0}={}) {
@@ -197,4 +198,110 @@ test('cancelling a pickup restores the previous spot, while dropping on the slee
   assert.equal(a.root.hidden, false);
   assert.equal(s.frames.size, 1);
   s.dom.window.close();
+});
+
+test('a window scene borrows the real Floppy, returns it, and respects parking, hiding and reduced motion', () => {
+  const s = setup(), a = s.assistant;
+  a.moveTo(110, 140);
+  let visible = true;
+  const scene = {
+    visible: () => visible,
+    paint: () => ({x: 470, y: 400, size: 56, pose: 'paddle', facing: 1, water: true}),
+    leave() {}
+  };
+  assert.equal(a.visitScene(scene), true);
+  s.animate(2200);
+  assert.equal(a.root.classList.contains('in-water'), true);
+  assert.equal(a.invitation.hidden, true);
+  visible = false;
+  s.animate(200);
+  assert.equal(a.scene, null);
+  assert.deepEqual([a.root.style.left, a.root.style.top], ['110px', '140px']);
+
+  visible = true;
+  a.parkHere();
+  const parked = a.readPark();
+  assert.equal(a.visitScene(scene), false);
+  assert.equal(a.visitScene(scene, true), true);
+  s.animate(9000);
+  assert.deepEqual(a.readPark(), parked);
+  assert.deepEqual([a.root.style.left, a.root.style.top], ['110px', '140px']);
+  assert.equal(s.frames.size, 0);
+  s.setMotion(false);
+  assert.equal(a.visitScene(scene, true), false);
+  s.setMotion(true);
+  a.toggleVisibility();
+  assert.equal(a.visitScene(scene, true), false);
+  s.dom.window.close();
+});
+
+function sceneIn(s, id) {
+  const {d,w,assistant:a}=s;
+  const win=d.createElement('section');
+  win.className='window active'; win.dataset.id=id;
+  win.innerHTML='<div class="window-content"><div class="scene-slot"></div></div>';
+  d.querySelector('#desktop').append(win);
+  const slot=win.querySelector('.scene-slot'), colors=new Set();
+  const rect={left:20,top:190,width:740,height:140,right:760,bottom:330};
+  Object.defineProperties(slot,{clientWidth:{value:740},clientHeight:{value:140}});
+  slot.getBoundingClientRect=slot.parentElement.getBoundingClientRect=()=>rect;
+  w.HTMLCanvasElement.prototype.getContext=()=>({set fillStyle(c){colors.add(c);},fillRect(){}});
+  w.ResizeObserver=class {observe(){} disconnect(){}};
+  const stage=mountWindowScene(win,a,()=>{});
+  const picture=slot.querySelector('.scene-play'), transport=slot.querySelector('.scene-transport');
+  picture.getBoundingClientRect=()=>({...rect,bottom:302,height:112});
+  stage.refresh();
+  const film=slot.querySelector('input'), caption=slot.querySelector('.scene-caption');
+  function wind(value) {film.value=String(value);film.dispatchEvent(new w.Event('input',{bubbles:true}));}
+  function click(x,y) {
+    picture.dispatchEvent(new w.MouseEvent('click',{detail:1,clientX:rect.left+x*rect.width,clientY:rect.top+y*112,bubbles:true}));
+  }
+  return {stage,win,picture,transport,film,caption,colors,wind,click};
+}
+
+test('tossing twice redirects the same swimmer; pausing and winding film retain one visit and restore its parking spot',()=>{
+  const s=setup(),a=s.assistant;
+  a.moveTo(140,130);a.parkHere();
+  const pool=sceneIn(s,'research');
+  pool.click(.85,.7);s.animate(2600);
+  const visit=a.scene, right=parseFloat(a.root.style.left), previousProgress=+pool.film.value;
+  assert.ok(right>500);
+  pool.click(.2,.8);s.animate(1900);
+  assert.equal(a.scene,visit);assert.ok(+pool.film.value>previousProgress);
+  assert.ok(parseFloat(a.root.style.left)<right-150);
+  pool.transport.click();const at=pool.film.value;s.animate(1200);
+  assert.equal(pool.film.value,at);assert.equal(s.frames.size,0);
+  pool.wind(72);assert.equal(pool.film.value,'72');assert.equal(s.frames.size,0);
+  pool.transport.click();s.animate(3500);
+  assert.equal(a.scene,null);assert.deepEqual([a.root.style.left,a.root.style.top],['140px','130px']);
+  assert.equal(pool.transport.textContent,'Replay');
+  pool.stage.destroy();s.dom.window.close();
+});
+
+test('without motion, choosing seedlings makes flowers in still frames; a hidden assistant stays hidden',()=>{
+  const s=setup({motion:false}),a=s.assistant,farm=sceneIn(s,'studies');
+  farm.click(.31,.6);assert.equal(farm.caption.textContent,'Seedling 1 of 7');
+  assert.ok(farm.colors.has('#d3a252'));assert.equal(s.frames.size,0);
+  farm.colors.clear();farm.click(.67,.6);
+  assert.ok(farm.colors.has('#d3a252'));assert.ok(farm.colors.has('#9293ba'));
+  assert.equal(farm.caption.textContent,'Seedling 6 of 7');
+  a.toggleVisibility();farm.wind(23);
+  assert.equal(a.root.hidden,true);assert.equal(a.scene,null);assert.equal(s.frames.size,0);
+  assert.equal(farm.film.value,'23');assert.equal(farm.transport.textContent,'Step');
+  farm.stage.destroy();s.dom.window.close();
+});
+
+test('an orbit change moves planet Floppy to a new lane; scrubbing also winds the globe texture',()=>{
+  const s=setup(),a=s.assistant,solar=sceneIn(s,'welcome');
+  solar.wind(60);const earthAt60=parseFloat(a.root.style.left);
+  solar.wind(40);
+  solar.picture.click();assert.equal(solar.caption.textContent,'Mars orbit');
+  s.animate(1000);
+  solar.wind(60);const spin=a.root.style.getPropertyValue('--world-scroll');
+  assert.notEqual(parseFloat(a.root.style.left),earthAt60);
+  solar.wind(67);assert.notEqual(a.root.style.getPropertyValue('--world-scroll'),spin);
+  assert.equal(a.root.classList.contains('planetary'),true);
+  solar.win.classList.remove('active');solar.stage.refresh();
+  assert.equal(a.scene,null);assert.equal(a.root.classList.contains('planetary'),false);
+  assert.equal(s.frames.size,0);solar.stage.destroy();s.dom.window.close();
 });

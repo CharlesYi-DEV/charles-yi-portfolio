@@ -108,3 +108,5 @@ Floppy never automatically opens a speech balloon. Click for an optional context
 The desktop now orders **My Work → Research → Hackathon**. My Work contains three selected experience/projects. Research contains MASCO–ESCO, labelled **In progress**, and supports the same folder controls. The previous direct In Progress desktop shortcut is removed.
 
 On compact screens, the desktop keeps the full available screen height and pushes its folder tabs and Control Strip to the bottom even when all windows are closed. Long content still scrolls behind the sticky controls.
+
+Expanding a window beyond its content uncovers one of 19 pixel scenes. A small playback strip pauses the visit or winds Floppy and the scenery together. The pool in My Work accepts beach-ball tosses, Research lets you water individual flowers, and About This Researcher lets planet Floppy change orbits. Click a spot or focus the picture and press Enter to cycle targets. With motion turned off, Step and the playhead show still frames. Parked Floppy only participates by invitation and returns to its spot; hiding Floppy leaves the scenery available.

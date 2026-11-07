@@ -1,3 +1,4 @@
+import { mountWindowScene } from './window-scenes.js';
 import { BlogReader } from './blog-reader.js';
 import { SoftwareUpdate } from './software-update.js';
 import { FloppyAssistant } from './floppy-assistant.js';
@@ -83,7 +84,7 @@ const contents = {
   evaluation: () => `<div class="document"><span class="eyebrow">EXPERIENCE NOTES / 03</span><h1>Beyond a plausible answer.</h1><p class="lede">An answer can sound right and still miss the point.</p><div class="document-note">RWS · Data Service Specialist · Part-time<br>August 2026–present</div><p>My work includes evaluating AI-generated text for factual accuracy, relevance, and Mandarin cultural appropriateness, alongside data collection, labelling, and annotation for model assessment and localisation.</p><h2>Three questions I bring to evaluation</h2><ol class="questions"><li>Is the answer supported by evidence?</li><li>Does it address what was actually asked?</li><li>Does it make sense in the reader’s cultural context?</li></ol><p>This experience connects to my wider interest in reliable AI systems: understanding the limits of an output, alongside its usefulness.</p></div>`,
   resume: () => `<div class="document"><span class="eyebrow">CURRICULUM VITAE / SELECTED EXPERIENCE</span><h1>Charles Yi</h1><p class="lede">Data science · Language · Reliable AI</p><h2>Education</h2><div class="resume-entry"><strong>Master of Data Science</strong><span>2025–present</span><p>Monash University · Expected December 2026</p></div><div class="resume-entry"><strong>BEng, Computer Science and Technology</strong><span>2019–2024</span><p>Dongguan University of Technology</p></div><h2>Experience</h2><div class="resume-entry"><strong>Data Service Specialist · RWS</strong><span>2026–present</span><p>AI evaluation, annotation, and localisation · Part-time</p></div><div class="resume-entry"><strong>Technical Sales Engineer</strong><span>2024</span><p>Dongguan Songhu Plastic Machinery Co Ltd</p></div><div class="resume-entry"><strong>Co-Founder · CYX Cosmetics Store</strong><span>2021–2026</span><p>Customer acquisition, content, and commercial performance</p></div><h2>Technical superpowers</h2><p><b>Data:</b> Python, SQL, PostgreSQL, pandas, data validation, taxonomy mapping, evidence traceability.</p><p><b>ML:</b> scikit-learn, TF-IDF, logistic regression, sentence embeddings, SVMs, Keras, held-out evaluation.</p><p><b>Audio & systems:</b> librosa, MFCC extraction, Kivy, Docker, cloud deployment.</p><button class="classic-button" data-open="contact">Get in touch ↗</button></div>`,
   contact: () => `<div class="document contact-document">${icon('contact')}<span class="eyebrow">LET’S COMPARE NOTES</span><h1>Say hello.</h1><p class="lede">Have a research question, a project idea, or a different way of looking at a problem?</p><a class="contact-link" href="mailto:charles.yi@msn.com">charles.yi@msn.com ↗</a><div class="button-row"><a class="classic-button" href="https://github.com/CharlesYi-DEV" target="_blank" rel="noopener noreferrer">View my GitHub ↗</a><a class="classic-button" href="https://www.linkedin.com/in/charlesyi-dev/" target="_blank" rel="noopener noreferrer">Find me on LinkedIn ↗</a></div><p class="muted">UTC+8</p></div>`,
-  help: () => `<div class="document"><span class="eyebrow">A QUICK ORIENTATION</span><h1>Welcome to my desktop.</h1><ul><li>Click or tap an icon once to open it. Drag desktop icons to move them; their positions are remembered in a preference cookie for one year. Right-click the desktop → Arrange Desktop Icons resets the layout. Keyboard users can Tab to an icon, use arrow keys to move it (Shift for fine adjustment), and press Enter to open it. Phones keep the compact icon grid.</li><li>Drag a striped title bar to move a window. The square at the left closes it; the square at the right expands it.</li><li>Drag a window’s bottom-right grip to resize it, or focus the grip and use arrow keys (Shift for smaller steps). Use the File menu to reopen windows, or View → Arrange windows to restore their positions and sizes.</li><li>On narrow screens, windows stack vertically. Opening an application scrolls to it.</li><li>Right-click the desktop for shortcuts and display settings. Right-click an icon or project for Open and Get Info, or a window for its controls. Shift+F10 opens the same menu from the keyboard; use arrow keys to choose an item and Escape to dismiss it. Selected text and links keep the browser’s normal menu.</li><li>Press Escape to close a menu or the active window.</li></ul><h2>Desktop extras</h2><ul><li>Floppy quietly switches between wandering, edge bouncing, looking around, dozing, and an occasional shy dodge. Hover for a small reaction; touch and keyboard controls always stay put. Opening animations must be on for movement. It only speaks when clicked. Click the disk for a thought, use Next to explore more, or follow its shortcut to a project or app. Later dismisses the balloon.</li><li>Drag Floppy to park it, or drop it on the disk sleeve marked Put away to hide it. With Floppy focused, the arrow keys move and park it. Click a parked Floppy and choose Let Floppy roam to release it. The Help menu can show a hidden Floppy again. Your browser remembers the spot you chose.</li><li>Help → Show Balloon Help explains controls when you hover or focus them. Escape dismisses a balloon.</li><li>Click a bottom folder tab to open it upwards; click again to tuck it away. Drag My Work, Research, Blog, or Scrapbook to the bottom edge to make a tab, or use the title-bar tab button. The same button returns a pop-up to a normal window.</li><li>Software Update checks for new blog posts and shows dated project milestones. It opens writing here, without installing anything.</li><li>Blog loads my writing from Charles’s Blog. Open a post to read it here, or use Open blog for the standalone site. Refresh checks for new writing; saved posts remain readable if the connection fails.</li><li>Sherlock searches this portfolio by topic. Use File → Find or Ctrl/Command+Shift+F.</li><li>Keep projects in Scrapbook using the button in a project or its right-click menu. Saved projects and appearance preferences stay in this browser.</li><li>Control Panels changes the wallpaper, reading size, and opening animations.</li><li>The Window menu lists every open window. Double-click a title bar or use its roll-up button to tuck a window away.</li><li>View → Sleep starts a starfield. Click, tap, or press any key to return.</li></ul><h2>About the design</h2><p>A personal tribute to the tactile, curious world of classic Macintosh desktops, inspired by the Platinum interface of <a href="https://en.wikipedia.org/wiki/Mac_OS_9" target="_blank" rel="noopener noreferrer">Mac OS 9</a>. The recessed beige CRT frame also takes inspiration from <a href="https://taoofmac.com/space/reviews/2025/11/24/1900" target="_blank" rel="noopener noreferrer">the Maclock</a>. Original interface artwork; built for the modern web.</p><p>View → Replay startup runs the short boot sequence. View → Opening animations turns the launch effects on or off; your system’s reduced-motion preference is respected. The display uses the available browser space. Expand an individual document with the square at the right of its title bar.</p><p>The My Work folder contains current experience and selected projects. The Research folder contains projects labelled In progress; planned evaluation is distinguished from completed computational work.</p></div>`,
+  help: () => `<div class="document"><span class="eyebrow">A QUICK ORIENTATION</span><h1>Welcome to my desktop.</h1><ul><li>Click or tap an icon once to open it. Drag desktop icons to move them; their positions are remembered in a preference cookie for one year. Right-click the desktop → Arrange Desktop Icons resets the layout. Keyboard users can Tab to an icon, use arrow keys to move it (Shift for fine adjustment), and press Enter to open it. Phones keep the compact icon grid.</li><li>Drag a striped title bar to move a window. The square at the left closes it; the square at the right expands it.</li><li>Drag a window’s bottom-right grip to resize it, or focus the grip and use arrow keys (Shift for smaller steps). Use the File menu to reopen windows, or View → Arrange windows to restore their positions and sizes.</li><li>On narrow screens, windows stack vertically. Opening an application scrolls to it.</li><li>Right-click the desktop for shortcuts and display settings. Right-click an icon or project for Open and Get Info, or a window for its controls. Shift+F10 opens the same menu from the keyboard; use arrow keys to choose an item and Escape to dismiss it. Selected text and links keep the browser’s normal menu.</li><li>Press Escape to close a menu or the active window.</li></ul><h2>Desktop extras</h2><ul><li>Give a window a little extra room below its contents to find Floppy’s hidden scene. Click the picture to play, or drag the playhead to explore a single frame. Try tossing a ball in My Work, watering a seedling in Research, or picking an orbit in About This Researcher. Enter on the picture chooses a target, and Escape sends Floppy home.</li><li>Floppy quietly switches between wandering, edge bouncing, looking around, dozing, and an occasional shy dodge. Hover for a small reaction; touch and keyboard controls always stay put. Opening animations must be on for movement. It only speaks when clicked. Click the disk for a thought, use Next to explore more, or follow its shortcut to a project or app. Later dismisses the balloon.</li><li>Drag Floppy to park it, or drop it on the disk sleeve marked Put away to hide it. With Floppy focused, the arrow keys move and park it. Click a parked Floppy and choose Let Floppy roam to release it. The Help menu can show a hidden Floppy again. Your browser remembers the spot you chose.</li><li>Help → Show Balloon Help explains controls when you hover or focus them. Escape dismisses a balloon.</li><li>Click a bottom folder tab to open it upwards; click again to tuck it away. Drag My Work, Research, Blog, or Scrapbook to the bottom edge to make a tab, or use the title-bar tab button. The same button returns a pop-up to a normal window.</li><li>Software Update checks for new blog posts and shows dated project milestones. It opens writing here, without installing anything.</li><li>Blog loads my writing from Charles’s Blog. Open a post to read it here, or use Open blog for the standalone site. Refresh checks for new writing; saved posts remain readable if the connection fails.</li><li>Sherlock searches this portfolio by topic. Use File → Find or Ctrl/Command+Shift+F.</li><li>Keep projects in Scrapbook using the button in a project or its right-click menu. Saved projects and appearance preferences stay in this browser.</li><li>Control Panels changes the wallpaper, reading size, and opening animations.</li><li>The Window menu lists every open window. Double-click a title bar or use its roll-up button to tuck a window away.</li><li>View → Sleep starts a starfield. Click, tap, or press any key to return.</li></ul><h2>About the design</h2><p>A personal tribute to the tactile, curious world of classic Macintosh desktops, inspired by the Platinum interface of <a href="https://en.wikipedia.org/wiki/Mac_OS_9" target="_blank" rel="noopener noreferrer">Mac OS 9</a>. The recessed beige CRT frame also takes inspiration from <a href="https://taoofmac.com/space/reviews/2025/11/24/1900" target="_blank" rel="noopener noreferrer">the Maclock</a>. Original interface artwork; built for the modern web.</p><p>View → Replay startup runs the short boot sequence. View → Opening animations turns the launch effects on or off; your system’s reduced-motion preference is respected. The display uses the available browser space. Expand an individual document with the square at the right of its title bar.</p><p>The My Work folder contains current experience and selected projects. The Research folder contains projects labelled In progress; planned evaluation is distinguished from completed computational work.</p></div>`,
   future: () => `<div class="document"><span class="eyebrow">IN DEVELOPMENT / RESEARCH PROJECT</span><h1>MASCO–ESCO</h1><p class="lede">Building a reproducible bridge between Malaysian occupations and European occupation and skills classifications.</p><div class="document-note"><b>Status: research in progress</b><br>Computational retrieval completed; independent human evaluation is planned.</div><h2>What I’m developing</h2><p>A pipeline to align individual occupations in MASCO 2020 with ESCO 1.2.1, extending the occupation-mapping questions explored in ReRouteHer. The study compares lexical, dense, hybrid, and reranked retrieval, with attention to occupational scope and Malaysian terminology.</p><h2>Work completed so far</h2><ul><li>Automated retrieval across 6,620 extracted MASCO occupations against 3,039 ESCO occupations.</li><li>Initial Qwen3 reranking for a 330-occupation sample.</li><li>A research proposal for independently evaluating the candidate mappings.</li></ul><h2>What comes next</h2><p>The annotation platform is set up for 15 calibration occupations and 150 evaluation occupations. Three annotators will review the same occupations independently, followed by adjudication. Human review is still ahead.</p><p>Planned outputs include a documented evaluation reference set, reproducible comparisons, and analysis of ambiguous, broader, and narrower occupation matches.</p><div class="document-note">This is ongoing research, not a published or fully human-validated national crosswalk. Retrieval completion does not establish mapping accuracy.</div><a class="classic-button" href="https://github.com/CharlesYi-DEV/masco-esco-crosswalk" target="_blank" rel="noopener noreferrer">View project repository</a><p class="muted">Project status: 28 October 2026.</p></div>`
 };
 
@@ -132,7 +133,7 @@ contents.info = () => {
 function showItemInfo(id, trigger) {
   inspectedApp = id;
   const existing = $('[data-id="info"]', windows);
-  if (existing) $('.window-content', existing).innerHTML = contents.info();
+  if (existing) $('.window-page', existing).innerHTML = contents.info();
   openWindow('info', trigger);
 }
 
@@ -171,7 +172,7 @@ function initializeApplication(id, win) {
     const bar = document.createElement('div');
     bar.className = 'bookmark-bar';
     bar.innerHTML = `<button class="classic-button" data-save="${id}"></button><button class="text-button" data-open="scrapbook">View Scrapbook</button>`;
-    $('.window-content', win).prepend(bar);
+    $('.window-page', win).prepend(bar);
     syncSavedControls();
   }
   if (id === 'sherlock') renderSearch();
@@ -504,7 +505,10 @@ function showBalloon(target) {
   balloon.style.top = `${Math.max(screen.top + 10, below ? anchor.bottom + 12 : anchor.top - balloon.offsetHeight - 12)}px`;
   balloon.style.setProperty('--tail-left', `${Math.max(16, Math.min(anchor.left + anchor.width / 2 - left, balloon.offsetWidth - 24))}px`);
 }
-function helpControl(target) { return target.closest('button, a, input, [data-balloon]'); }
+function helpControl(target) {
+  if (target.closest('.scene-slot, .floppy-assistant.visiting')) return null;
+  return target.closest('button, a, input, [data-balloon]');
+}
 screenOS.addEventListener('pointerover', event => {
   if (event.pointerType === 'touch') return;
   const target = helpControl(event.target); if (!target || target.contains(event.relatedTarget)) return;
@@ -547,10 +551,13 @@ function place(win, id) {
 }
 
 function focusWindow(win, focusControl = false) {
+  const previous = windows.querySelector('.window.active');
   windows.querySelectorAll('.window').forEach(w => w.classList.toggle('active', w === win));
+  if (previous && previous !== win) previous.scene?.refresh();
   win.style.zIndex = ++highestZ;
   syncFolderTabs();
   activeId = win.dataset.id;
+  win.scene?.refresh();
   syncWindowMenu();
   if (focusControl) $('.window-title', win).focus({ preventScroll: true });
 }
@@ -563,12 +570,13 @@ function openWindow(id, trigger, initial = false) {
     win.className = `window ${id === 'note' ? 'note-window' : ''}`;
     win.dataset.id = id;
     win.setAttribute('aria-labelledby', `title-${id}`);
-    win.innerHTML = `<div class="titlebar"><button class="window-close" aria-label="Close ${config[id].title}" data-close="${id}"></button><h2 class="window-title" id="title-${id}" tabindex="-1">${config[id].title}</h2>${folderIds.includes(id) ? `<button class="window-tab" data-pin="${id}" aria-label="Tuck ${folderNames[id]} into a bottom tab" data-balloon="Tuck this folder into a tab at the bottom of the desktop.">▱</button>` : ''}<button class="window-shade" aria-label="Roll up ${config[id].title}" aria-pressed="false" data-shade="${id}"></button><button class="window-zoom" aria-label="Expand ${config[id].title}" aria-pressed="false" data-zoom="${id}"></button></div><div class="window-content">${contents[id]()}</div><button class="window-resize" aria-label="Resize ${config[id].title}" data-balloon="Drag this corner to resize the window. With this grip focused, use arrow keys; Shift makes smaller adjustments."></button>`;
+    win.innerHTML = `<div class="titlebar"><button class="window-close" aria-label="Close ${config[id].title}" data-close="${id}"></button><h2 class="window-title" id="title-${id}" tabindex="-1">${config[id].title}</h2>${folderIds.includes(id) ? `<button class="window-tab" data-pin="${id}" aria-label="Tuck ${folderNames[id]} into a bottom tab" data-balloon="Tuck this folder into a tab at the bottom of the desktop.">▱</button>` : ''}<button class="window-shade" aria-label="Roll up ${config[id].title}" aria-pressed="false" data-shade="${id}"></button><button class="window-zoom" aria-label="Expand ${config[id].title}" aria-pressed="false" data-zoom="${id}"></button></div><div class="window-content"><div class="window-page">${contents[id]()}</div><div class="scene-slot" data-scene="${id}"></div></div><button class="window-resize" aria-label="Resize ${config[id].title}" data-balloon="Drag this corner to resize the window. With this grip focused, use arrow keys; Shift makes smaller adjustments."></button>`;
     windows.append(win);
     place(win, id);
     enableDrag(win);
     enableResize(win);
     initializeApplication(id, win);
+    win.scene = mountWindowScene(win, floppyAssistant, () => focusWindow(win));
   }
   win.hidden = false;
   win.classList.remove('shaded');
@@ -587,6 +595,7 @@ function closeWindow(id) {
   if (!win) return;
   win.blogReader?.destroy();
   win.updater?.destroy();
+  win.scene?.destroy();
   win.remove();
   syncWindowMenu();
   syncFolderTabs();
@@ -654,6 +663,7 @@ function enableResize(win) {
     win.style.width = `${Math.max(230, Math.min(maxWidth, width))}px`;
     win.style.height = `${Math.max(100, Math.min(maxHeight, height))}px`;
     win.dataset.resized = 'true'; win.dataset.moved = 'true';
+    win.classList.toggle('height-limit', height >= maxHeight);
     $('#announcement').textContent = `${config[win.dataset.id].title}: ${Math.round(parseFloat(win.style.width))} by ${Math.round(parseFloat(win.style.height))} pixels`;
   }
   handle.addEventListener('pointerdown', event => {
@@ -765,6 +775,7 @@ function setMotion(enabled) {
   $('#motion-toggle').textContent = motionEnabled ? 'Opening animations: on' : 'Opening animations: off';
   syncPreferencesControls();
   floppyAssistant.motionChanged();
+  windows.querySelectorAll('.window').forEach(win => win.scene?.refresh());
   if (!motionEnabled) {
     const pending = pendingLaunch;
     cancelLaunch();
@@ -809,6 +820,7 @@ function toggleWindowSize(win) {
   const expanded = win.classList.toggle('maximized');
   $('.window-zoom', win).setAttribute('aria-pressed', String(expanded));
   focusWindow(win, true);
+  if (expanded && mobile()) $('.scene-slot', win).scrollIntoView({block: 'nearest'});
 }
 function openContextMenu(target, x, y) {
   if (screenOS.inert) return;
@@ -991,6 +1003,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (!balloon.hidden) { hideBalloon(); return; }
     if (floppyAssistant.dismiss(true)) return;
+    if (floppyAssistant.scene && e.target.closest('.scene-slot')) { floppyAssistant.finishMood(); return; }
     if (bootTimer !== null) { finishBoot(); return; }
     if (pendingLaunch) { cancelLaunch(); $('#announcement').textContent = 'Opening cancelled'; return; }
     const menu = $('.menu-toggle[aria-expanded="true"]');

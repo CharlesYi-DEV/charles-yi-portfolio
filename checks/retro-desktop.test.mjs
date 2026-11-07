@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {SoftwareUpdate} from '../software-update.js';
+import {mountWindowScene} from '../window-scenes.js';
 import {FloppyAssistant} from '../floppy-assistant.js';
 const html = readFileSync(new URL('../index.html', import.meta.url),'utf8');
 const source = readFileSync(new URL('../app.js', import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
@@ -10,10 +11,11 @@ function desktop(cookie) {
   const dom = new JSDOM(html,{url:'https://charlesyi.net',runScripts:'outside-only'});
   const w=dom.window;
   w.matchMedia=()=>({matches:false,addEventListener(){}});
-  w.ResizeObserver=class {observe(){}};
+  w.ResizeObserver=class {observe(){} disconnect(){}};
   w.BlogReader=class {constructor(root){this.root=root;} destroy(){this.destroyed=true;}};
   w.SoftwareUpdate=class {destroy(){}};
   w.FloppyAssistant=FloppyAssistant;
+  w.mountWindowScene=mountWindowScene;
   w.localStorage.setItem('charles-desktop-v1',JSON.stringify({motion:false}));
   for (const id of ['screen-stage','desktop']) Object.defineProperty(w.document.getElementById(id),'clientWidth',{value:1200});
   if (cookie) w.document.cookie=cookie;
@@ -113,4 +115,49 @@ test('Research contains the in-progress crosswalk and comes before Hackathon',()
   d.querySelector('[data-id="studies"] [data-open="future"]').click();
   assert.ok(d.querySelector('[data-id="future"]'));
   dom.window.close();
+});
+
+test('all nineteen windows expose a distinct playable scene only when there is room', () => {
+  const dom = desktop(), d = dom.window.document;
+  const ids = ['research', 'studies', 'welcome', 'about', 'blog', 'hackathon', 'updates', 'sherlock',
+    'panels', 'scrapbook', 'info', 'note', 'future', 'resume', 'contact', 'help', 'reroute', 'sound', 'evaluation'];
+  const labels = new Set();
+  // Paint the scenery at both ends of its sequence, including the props
+  // that are drawn only while Floppy is present.
+  dom.window.HTMLCanvasElement.prototype.getContext = () => ({fillRect(...args) {
+    assert.ok(args.every(Number.isFinite));
+  }});
+  try {
+    for (const id of ids) {
+      const win = d.createElement('section');
+      win.className = 'window active'; win.dataset.id = id;
+      win.innerHTML = '<div class="window-content"><div class="scene-slot"></div></div>';
+      d.querySelector('#desktop').append(win);
+      const slot = win.querySelector('.scene-slot');
+      let height = 0, calls = 0;
+      Object.defineProperties(slot, {clientHeight: {get: () => height}, clientWidth: {value: 720}});
+      const rect = {left: 20, top: 70, right: 740, bottom: 210, width: 720, height: 140};
+      slot.getBoundingClientRect = slot.parentElement.getBoundingClientRect = () => rect;
+      d.querySelector('#screen-stage').getBoundingClientRect = () => ({...rect, top: 0, bottom: 800});
+      const visitor = {motion: () => true, visitScene(scene) {
+        calls++;
+        for (const t of [0, .1, .55, .95, 1]) {
+          const point = scene.paint(t, true);
+          assert.ok(point.x >= rect.left && point.x <= rect.right && point.y >= rect.top && point.y <= rect.bottom);
+        }
+        return true;
+      }};
+      const stage = mountWindowScene(win, visitor, () => {});
+      stage.refresh();
+      assert.equal(slot.classList.contains('revealed'), false);
+      height = 140;
+      stage.refresh();
+      assert.equal(slot.classList.contains('revealed'), true);
+      slot.querySelector('button').click();
+      labels.add(slot.querySelector('button').getAttribute('aria-label'));
+      assert.equal(calls, 1);
+      stage.destroy(); win.remove();
+    }
+    assert.equal(labels.size, ids.length);
+  } finally { dom.window.close(); }
 });
