@@ -247,9 +247,9 @@ body:not(.compact) .desktop-icons.dragging-icons{z-index:20000}
 
 /* Random, quiet moods; the face and limbs remain simple pixel lines. */
 .floppy-assistant{position:fixed;left:170px;top:500px;width:88px;z-index:9992;font:400 18px/25px var(--font-system)}
-.floppy-button{display:flex;flex-direction:column;align-items:center;gap:0;width:88px;padding:0;border:0;background:transparent;touch-action:manipulation}
+.floppy-button{display:flex;flex-direction:column;align-items:center;gap:0;width:88px;padding:0;border:0;background:transparent;touch-action:none;user-select:none;-webkit-touch-callout:none;cursor:grab}
 .floppy-sprite{display:block;width:88px;height:84px;image-rendering:pixelated;overflow:hidden}
-.floppy-button>span{padding:0 4px;background:#ccc;color:#111;font:400 16px/20px var(--font-system);white-space:nowrap;box-shadow:1px 1px #333}
+.floppy-button>span{pointer-events:none;padding:0 4px;background:#ccc;color:#111;font:400 16px/20px var(--font-system);white-space:nowrap;box-shadow:1px 1px #333}
 .floppy-button:hover>span,.floppy-button:focus-visible>span{background:#000080;color:#fff}
 .floppy-invitation{position:absolute;left:0;bottom:calc(100% + 14px);width:280px;background:#ffffef;color:#111;border:1px solid #111;border-radius:12px;padding:16px;box-shadow:2px 2px #0007}
 .floppy-invitation:after{content:'';position:absolute;left:var(--floppy-tail,28px);bottom:-9px;width:16px;height:16px;background:#ffffef;border-right:1px solid #111;border-bottom:1px solid #111;transform:skewY(35deg)}
@@ -308,7 +308,7 @@ body:not(.compact) .desktop-icons.dragging-icons{z-index:20000}
   20% { transform: var(--hop); }
   66% { transform: var(--offer); }
 }
-.floppy-assistant:where(:hover, :focus-within) .floppy-cels { animation: none; transform: var(--stand); }
+.floppy-assistant:where(:hover, :focus-within):where(:not(.parked)) .floppy-cels { animation: none; transform: var(--stand); }
 .floppy-assistant:where(.noticed) .floppy-cels { animation: floppy-wave 1.2s step-end; }
 @keyframes floppy-wave {
   0%, 86% { transform: var(--offer); }
@@ -328,6 +328,28 @@ body:not(.compact) .desktop-icons.dragging-icons{z-index:20000}
   42% { transform: var(--skate); }
   82% { transform: var(--pass); }
 }
+.floppy-assistant.parked .floppy-cels { transform: var(--perch); }
+.floppy-assistant.carried .floppy-button { cursor: grabbing; }
+.floppy-assistant.carried .floppy-cels { transform: var(--carry); animation: floppy-dangle .64s step-end infinite; }
+@keyframes floppy-dangle {
+  0%, 100% { transform: var(--carry); }
+  50% { transform: var(--swing); }
+}
+.floppy-sleeve {
+  position: fixed;
+  z-index: 9993;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1px solid #222;
+  box-shadow: inset 1px 1px #fff, inset -1px -1px #777, 1px 1px #222;
+  background: #ddd;
+  color: #151515;
+  font: 400 16px/20px var(--font-system);
+  pointer-events: none;
+}
+.floppy-sleeve.ready { color: white; background: #000080; outline: 1px dotted white; outline-offset: -4px; }
 .reduced-motion .floppy-assistant *{animation:none!important}
 .screen-os[inert] .floppy-assistant{visibility:hidden}
 .compact .floppy-assistant{width:66px}

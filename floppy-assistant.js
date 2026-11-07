@@ -1,4 +1,5 @@
 const HIDDEN_KEY = 'charles-floppy-hidden-v1';
+const PARK_KEY = 'charles-floppy-park-v1';
 const thoughts = [
   {title:'Something worth reading?', text:'Notes from Charles’s projects and things he’s learning.', action:'Read Blog', app:'blog'},
   {title:'Let’s open the work folder.', text:'AI evaluation, ReRouteHer, and sound detection. Each project has a story.', action:'My Work', app:'research'},
@@ -35,6 +36,9 @@ const poses = {
   brace: {lift: 2, arms: readyArms, legs: bentKnees, blink: true},
   hop: {lift: -1, arms: readyArms, legs: 'M11 31Q6 33 8 35Q10 36 12 33 M24 31Q29 33 27 35Q25 36 23 33'},
   skate: {tilt: -6, arms: 'M3 19Q-1 18 -4 14 M32 19Q34 25 38 22', legs: 'M11 31Q7 32 5 35Q4 36 2 34 M24 31Q25 37 30 37Q32 37 33 36', gaze: 2},
+  carry: {tilt: -4, arms: 'M3 19Q-2 19 0 13Q1 10 3 9 M32 19Q37 17 35 12Q34 10 32 9', legs: 'M11 31Q8 34 9 36Q10 38 13 35 M24 31Q22 34 23 38Q24 40 27 38', gaze: 1},
+  swing: {tilt: 3, arms: 'M3 19Q-1 18 0 13Q1 11 3 10 M32 19Q37 18 35 12Q34 9 32 8', legs: 'M11 31Q10 35 12 38Q14 40 16 37 M24 31Q27 34 26 36Q24 38 22 35', gaze: 1},
+  perch: {lift: 2, arms: 'M3 19Q-1 25 4 27 M32 19Q36 25 31 27', legs: bentKnees},
   snooze: {tilt: 5, lift: 3, arms: 'M3 19Q-2 25 5 25Q8 25 11 23 M32 19Q37 25 30 25Q26 25 24 23', legs: bentKnees, blink: true},
 };
 
@@ -80,9 +84,18 @@ export class FloppyAssistant {
     this.ready = ready;
     this.motion = motion;
     this.view = root.ownerDocument.defaultView;
-    root.innerHTML = `<div class="floppy-invitation" id="floppy-invitation" role="group" aria-label="A thought from Floppy" hidden><p id="floppy-message" aria-live="polite"><strong></strong><span></span></p><div class="floppy-actions"><button class="classic-button primary" data-floppy="open"></button><button class="classic-button" data-floppy="next" aria-label="Another thought">Next</button><button class="classic-button" data-floppy="later">Later</button></div></div><button class="floppy-button" aria-label="Talk to Floppy Assistant" data-floppy="talk">${disk}<span>Floppy</span></button>`;
+    root.innerHTML = `<div class="floppy-invitation" id="floppy-invitation" role="group" aria-label="A thought from Floppy" hidden><p id="floppy-message" aria-live="polite"><strong></strong><span></span></p><div class="floppy-actions"><button class="classic-button primary" data-floppy="open"></button><button class="classic-button" data-floppy="next" aria-label="Another thought">Next</button><button class="classic-button" data-floppy="later">Later</button><button class="classic-button" data-floppy="park">Park here</button></div></div><button class="floppy-button" aria-label="Talk to Floppy Assistant" data-floppy="talk">${disk}<span>Floppy</span></button>`;
     this.invitation = root.querySelector('.floppy-invitation');
     this.button = root.querySelector('.floppy-button');
+    this.parkButton = root.querySelector('[data-floppy="park"]');
+    this.parked = this.readPark();
+    this.syncParking();
+    this.sleeve = root.ownerDocument.createElement('div');
+    this.sleeve.className = 'floppy-sleeve';
+    this.sleeve.hidden = true;
+    this.sleeve.setAttribute('aria-hidden', 'true');
+    this.sleeve.innerHTML = `<svg viewBox="0 0 32 30" width="32" height="30" shape-rendering="crispEdges" aria-hidden="true"><path fill="#49464a" stroke="#222" d="M2 4h28v23H2z"/><path fill="#fff2c4" stroke="#222" d="M2 6h6l3 5h10l3-5h6v21H2z"/><path fill="none" stroke="#bda77d" d="m3 26 8-9m18 9-8-9"/><path fill="#61718e" d="M11 15h10v2H11z"/></svg><span>Put away</span>`;
+    root.after(this.sleeve);
     root.hidden = this.readStorage('localStorage', HIDDEN_KEY) === '1';
     this.syncToggle();
     root.addEventListener('pointerenter', event => {
@@ -96,6 +109,27 @@ export class FloppyAssistant {
     root.addEventListener('focusin', () => { this.cancelDodge(); this.notice(); });
     // Once a press starts, stay put. Touch and keyboard access never dodge.
     root.addEventListener('pointerdown', () => this.stopWalking());
+    this.button.addEventListener('pointerdown', event => this.pickUp(event));
+    this.button.addEventListener('pointermove', event => this.carry(event));
+    this.button.addEventListener('pointerup', event => {
+      if (this.drag?.id !== event.pointerId) return;
+      this.carry(event);
+      this.finishDrag(false);
+    });
+    for (const type of ['pointercancel', 'lostpointercapture']) {
+      this.button.addEventListener(type, event => {
+        if (this.drag?.id === event.pointerId) this.finishDrag(true);
+      });
+    }
+    this.view.addEventListener('blur', () => this.finishDrag(true));
+    root.ownerDocument.addEventListener('keydown', event => {
+      if (this.drag && event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        this.finishDrag(true);
+      }
+    }, true);
+    this.button.addEventListener('keydown', event => this.handleMoveKey(event));
     const dismissOutside = event => { if (!root.contains(event.target)) this.dismiss(); };
     root.ownerDocument.addEventListener('pointerdown', dismissOutside, {passive:true});
     root.ownerDocument.addEventListener('click', dismissOutside);
@@ -106,6 +140,23 @@ export class FloppyAssistant {
     root.addEventListener('click', event => {
       const action = event.target.closest('[data-floppy]')?.dataset.floppy;
       if (!action) return;
+      if (action === 'talk' && this.skipDragClick && event.detail > 0) {
+        this.skipDragClick = false;
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      if (action === 'park') {
+        if (this.parked) {
+          this.setPark(null);
+          this.dismiss();
+          this.desktop.focus({preventScroll: true});
+          this.start();
+        } else {
+          this.parkHere();
+          this.dismiss(true);
+        }
+      }
       if (action === 'later') { this.dismiss(true); this.queueWalk(60000); }
       if (action === 'talk') this.speak(!this.invitation.hidden);
       if (action === 'next') this.speak(true);
@@ -122,20 +173,107 @@ export class FloppyAssistant {
   writeStorage(store, key, value) {
     try { this.view[store].setItem(key, value); } catch { /* Memory state still works this visit. */ }
   }
+  readPark() {
+    try {
+      const point = JSON.parse(this.readStorage('localStorage', PARK_KEY));
+      if ([point?.x, point?.y].every(n => Number.isFinite(n) && n >= 0 && n <= 1)) return point;
+    } catch { /* Ignore an invalid saved position. */ }
+    return null;
+  }
+  syncParking() {
+    this.root.classList.toggle('parked', Boolean(this.parked));
+    this.parkButton.textContent = this.parked ? 'Let Floppy roam' : 'Park here';
+    this.button.title = this.parked ? 'Parked. Click for options or drag to move.' : 'Click to talk. Drag to park or put away.';
+  }
+  setPark(point) {
+    this.parked = point;
+    this.writeStorage('localStorage', PARK_KEY, JSON.stringify(point));
+    this.syncParking();
+  }
+  parkHere() {
+    this.stopWalking();
+    const b = this.bounds();
+    const fraction = (value, min, max) => Math.max(0, Math.min(1, (value - min) / (max - min || 1)));
+    this.setPark({
+      x: fraction(parseFloat(this.root.style.left), b.left, b.right),
+      y: fraction(parseFloat(this.root.style.top), b.top, b.bottom)
+    });
+  }
+  pickUp(event) {
+    if (event.button !== 0 || event.isPrimary === false || this.drag || !this.frame || !this.ready()) return;
+    this.skipDragClick = false;
+    this.drag = {id: event.pointerId, x: event.clientX, y: event.clientY,
+      left: parseFloat(this.root.style.left), top: parseFloat(this.root.style.top), lastX: event.clientX, moved: false};
+    this.button.setPointerCapture?.(event.pointerId);
+  }
+  carry(event) {
+    const drag = this.drag;
+    if (!drag || drag.id !== event.pointerId) return;
+    const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+    if (!drag.moved) {
+      if (Math.hypot(dx, dy) < 6) return;
+      drag.moved = true;
+      this.dismiss();
+      this.root.classList.remove('noticed');
+      this.root.classList.add('carried');
+      // Start the sleeve away from the pickup point to avoid an accidental hide.
+      const frame = this.frame.getBoundingClientRect();
+      this.sleeve.hidden = false;
+      this.sleeve.style.left = `${drag.x < frame.left + frame.width / 2 ? frame.right - this.sleeve.offsetWidth - 16 : frame.left + 16}px`;
+      this.sleeve.style.top = `${Math.max(frame.top + 46, frame.bottom - this.sleeve.offsetHeight - 72)}px`;
+    }
+    event.preventDefault();
+    if (Math.abs(event.clientX - drag.lastX) >= 2) {
+      this.faceDirection(event.clientX - drag.lastX);
+      drag.lastX = event.clientX;
+    }
+    this.moveTo(drag.left + dx, drag.top + dy);
+    const sleeve = this.sleeve.getBoundingClientRect();
+    drag.overSleeve = sleeve.width > 0 && event.clientX >= sleeve.left && event.clientX <= sleeve.right &&
+      event.clientY >= sleeve.top && event.clientY <= sleeve.bottom;
+    this.sleeve.classList.toggle('ready', drag.overSleeve);
+  }
+  finishDrag(cancelled) {
+    const drag = this.drag;
+    if (!drag) return;
+    this.drag = null;
+    if (this.button.hasPointerCapture?.(drag.id)) this.button.releasePointerCapture(drag.id);
+    this.sleeve.hidden = true;
+    this.sleeve.classList.remove('ready');
+    this.root.classList.remove('carried');
+    this.skipDragClick = drag.moved || cancelled;
+    if (cancelled) this.moveTo(drag.left, drag.top);
+    else if (drag.moved && drag.overSleeve) {
+      this.toggleVisibility();
+      this.desktop.focus({preventScroll: true});
+    } else if (drag.moved) this.parkHere();
+    this.start();
+  }
+  handleMoveKey(event) {
+    const direction = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]}[event.key];
+    if (!direction || this.drag || !this.frame || event.metaKey || event.ctrlKey || event.altKey) return;
+    event.preventDefault();
+    this.dismiss();
+    const distance = event.shiftKey ? 1 : 12;
+    this.moveTo(parseFloat(this.root.style.left) + direction[0] * distance, parseFloat(this.root.style.top) + direction[1] * distance);
+    this.parkHere();
+  }
   syncToggle() {
     this.toggle.textContent = this.root.hidden ? 'Show Floppy Assistant' : 'Hide Floppy Assistant';
     this.toggle.setAttribute('aria-pressed', String(!this.root.hidden));
   }
   notice() {
-    if (!this.motion()) return;
+    if (!this.motion() || this.drag?.moved) return;
     this.view.clearTimeout(this.noticeTimer);
     this.root.classList.add('noticed');
     this.noticeTimer = this.view.setTimeout(() => this.root.classList.remove('noticed'),1200);
   }
   toggleVisibility() {
+    this.finishDrag(true);
     this.stopWalking();
     this.dismiss();
     this.root.hidden = !this.root.hidden;
+    if (this.root.hidden) this.hovered = false;
     this.writeStorage('localStorage', HIDDEN_KEY, this.root.hidden ? '1' : '0');
     this.syncToggle();
     this.start();
@@ -185,6 +323,7 @@ export class FloppyAssistant {
     const bounds = this.bounds(), tabBox = tab?.getBoundingClientRect();
     const size = `${this.frame.clientWidth}:${this.frame.clientHeight}`;
     if (!this.placed || this.compact !== compact || this.frameSize !== size) {
+      this.finishDrag(true);
       this.stopWalking();
       this.moveTo(compact ? bounds.right : (tabBox?.left || bounds.left) + 8, bounds.bottom);
       this.placed = true;
@@ -192,6 +331,9 @@ export class FloppyAssistant {
       this.frameSize = size;
       this.start();
     } else this.moveTo(parseFloat(this.root.style.left), parseFloat(this.root.style.top));
+    if (this.parked && !this.drag) {
+      this.moveTo(bounds.left + this.parked.x * (bounds.right - bounds.left), bounds.top + this.parked.y * (bounds.bottom - bounds.top));
+    }
     this.positionBalloon();
   }
   bounds() {
@@ -219,7 +361,7 @@ export class FloppyAssistant {
   queueWalk(delay) {
     this.view.clearTimeout(this.walkTimer);
     this.walkTimer = null;
-    if (this.root.hidden || !this.motion() || !this.desktop) return;
+    if (this.root.hidden || this.parked || this.drag || !this.motion() || !this.desktop) return;
     this.walkTimer = this.view.setTimeout(() => { this.walkTimer = null; this.chooseMotion(); },delay);
   }
   stopWalking() {
@@ -245,7 +387,7 @@ export class FloppyAssistant {
     this.root.dataset.mood = mood;
   }
   chooseMotion() {
-    if (this.root.hidden || !this.motion() || !this.frame) return;
+    if (this.root.hidden || this.parked || this.drag || !this.motion() || !this.frame) return;
     if (this.isPaused() || !this.invitation.hidden) { this.queueWalk(3000); return; }
     const moods = ['wander','wander','wander','bounce','bounce','shy','peek','nap'].filter(mood=>mood!==this.previousMood);
     const mood = moods[Math.floor(this.random()*moods.length)];
@@ -335,7 +477,7 @@ export class FloppyAssistant {
     this.walkFrame=this.view.requestAnimationFrame(step);
   }
   wander() {
-    if (this.root.hidden || !this.motion() || !this.frame) return;
+    if (this.root.hidden || this.parked || this.drag || !this.motion() || !this.frame) return;
     if (this.isPaused()) { this.queueWalk(3000); return; }
     this.setMood('wander');
     const frame = this.frame.getBoundingClientRect(), doc = this.root.ownerDocument;

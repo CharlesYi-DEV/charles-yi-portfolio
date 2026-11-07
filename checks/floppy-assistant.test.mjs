@@ -130,3 +130,71 @@ test('shy mood makes one short dodge, stays catchable afterwards, and never evad
     t.assistant.button.click();assert.equal(t.assistant.invitation.hidden,false);t.dom.window.close();
   }
 });
+
+function pointer(s, type, x, y, id = 1) {
+  s.assistant.button.dispatchEvent(new s.w.PointerEvent(type, {
+    bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true,
+    pointerId: id, button: 0, clientX: x, clientY: y
+  }));
+}
+const pointerClick = s => s.assistant.button.dispatchEvent(new s.w.MouseEvent('click', {bubbles: true, detail: 1}));
+
+test('a touch drag parks silently, survives other apps, and can be released even with motion initially off', () => {
+  const s = setup({motion: false});
+  const a = s.assistant;
+  a.moveTo(300, 300);
+  pointer(s, 'pointerdown', 310, 310);
+  pointer(s, 'pointermove', 500, 600, 2);
+  assert.equal(a.sleeve.hidden, true);
+  pointer(s, 'pointermove', 410, 350);
+  assert.equal(a.sleeve.hidden, false);
+  assert.equal(a.root.classList.contains('carried'), true);
+  pointer(s, 'pointerup', 410, 350);
+  pointerClick(s);
+  assert.equal(a.invitation.hidden, true);
+  assert.equal(a.sleeve.hidden, true);
+  assert.deepEqual([a.root.style.left, a.root.style.top], ['400px', '340px']);
+
+  a.appOpened();
+  s.setMotion(true);
+  a.motionChanged();
+  s.advance(6000);
+  assert.equal(s.frames.size, 0);
+  assert.ok(a.readPark());
+  // A fresh, slightly unsteady tap on the parked disk still opens its controls.
+  pointer(s, 'pointerdown', 410, 350);
+  pointer(s, 'pointerup', 412, 351);
+  pointerClick(s);
+  assert.equal(a.invitation.hidden, false);
+  a.parkButton.click();
+  assert.equal(a.readPark(), null);
+  s.advance(6000);
+  assert.equal(s.frames.size, 1);
+  s.dom.window.close();
+});
+
+test('cancelling a pickup restores the previous spot, while dropping on the sleeve hides Floppy until restored', () => {
+  const s = setup();
+  const a = s.assistant;
+  a.moveTo(240, 160);
+  a.sleeve.getBoundingClientRect = () => ({left: 800, top: 480, right: 930, bottom: 530, width: 130});
+  pointer(s, 'pointerdown', 260, 180);
+  pointer(s, 'pointermove', 850, 500);
+  pointer(s, 'pointercancel', 850, 500);
+  assert.deepEqual([a.root.style.left, a.root.style.top], ['240px', '160px']);
+  assert.equal(a.root.hidden, false);
+  assert.equal(a.readPark(), null);
+
+  pointer(s, 'pointerdown', 260, 180);
+  pointer(s, 'pointermove', 850, 500);
+  pointer(s, 'pointerup', 850, 500);
+  pointerClick(s);
+  assert.equal(a.invitation.hidden, true);
+  assert.equal(a.root.hidden, true);
+  assert.equal(s.w.localStorage.getItem('charles-floppy-hidden-v1'), '1');
+  a.toggleVisibility();
+  s.advance(6000);
+  assert.equal(a.root.hidden, false);
+  assert.equal(s.frames.size, 1);
+  s.dom.window.close();
+});
