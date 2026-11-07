@@ -248,7 +248,7 @@ body:not(.compact) .desktop-icons.dragging-icons{z-index:20000}
 /* Random, quiet moods; the face and limbs remain simple pixel lines. */
 .floppy-assistant{position:fixed;left:170px;top:500px;width:88px;z-index:9992;font:400 18px/25px var(--font-system)}
 .floppy-button{display:flex;flex-direction:column;align-items:center;gap:0;width:88px;padding:0;border:0;background:transparent;touch-action:manipulation}
-.floppy-sprite{display:block;width:88px;height:84px;image-rendering:pixelated;overflow:visible}
+.floppy-sprite{display:block;width:88px;height:84px;image-rendering:pixelated;overflow:hidden}
 .floppy-button>span{padding:0 4px;background:#ccc;color:#111;font:400 16px/20px var(--font-system);white-space:nowrap;box-shadow:1px 1px #333}
 .floppy-button:hover>span,.floppy-button:focus-visible>span{background:#000080;color:#fff}
 .floppy-invitation{position:absolute;left:0;bottom:calc(100% + 14px);width:280px;background:#ffffef;color:#111;border:1px solid #111;border-radius:12px;padding:16px;box-shadow:2px 2px #0007}
@@ -257,24 +257,77 @@ body:not(.compact) .desktop-icons.dragging-icons{z-index:20000}
 .floppy-invitation.below:after{top:-9px;bottom:auto;border:0;border-left:1px solid #111;border-top:1px solid #111}
 .floppy-invitation p{margin:0 0 14px}.floppy-invitation strong{display:block;font-weight:400;font-size:20px;line-height:26px;margin-bottom:8px}.floppy-invitation p>span{display:block}
 .floppy-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.floppy-actions .classic-button{font:400 16px/24px var(--font-system);min-height:34px;padding:3px 9px}
-.floppy-assistant.inviting .floppy-shutter,.floppy-assistant.noticed .floppy-shutter{animation:floppy-click 1.2s steps(2,end) 1}
-.floppy-assistant.noticed .floppy-eyes{transform-origin:17px 21px;animation:floppy-notice 1.2s steps(1,end) 1}
-@keyframes floppy-notice{0%,30%,65%,100%{transform:scaleY(1)}40%,55%{transform:scaleY(.33)}}
-@keyframes floppy-click{0%,20%,85%,100%{transform:translateX(0)}40%,60%{transform:translateX(-2px)}}
-.floppy-assistant.walking .floppy-sprite{animation:floppy-shuffle .6s steps(1,end) infinite}
-.floppy-assistant.walking .floppy-leg-left{animation:floppy-step .6s steps(1,end) infinite}
-.floppy-assistant.walking .floppy-leg-right{animation:floppy-step .6s steps(1,end) -.3s infinite}
-.floppy-assistant.noticed .floppy-arm-right{animation:floppy-wave 1.2s steps(2,end) 1}
-.floppy-assistant[data-mood=nap] .floppy-eyes{transform-origin:17px 21px;transform:scaleY(.33)}
-.floppy-assistant[data-mood=peek] .floppy-eyes{animation:floppy-peek 5.5s steps(1,end) 1}
-@keyframes floppy-step{0%,49%{transform:translate(0,0)}50%,100%{transform:translate(1px,-2px)}}
-@keyframes floppy-wave{0%,100%{transform:translateY(0)}35%,65%{transform:translateY(-3px)}}
-@keyframes floppy-peek{0%,100%{transform:translateX(0)}20%,40%{transform:translateX(-1px)}60%,80%{transform:translateX(1px)}}
-.floppy-assistant.blog-nudge .floppy-sprite{animation:floppy-blog-hop .65s steps(3,end) 1}
-@keyframes floppy-blog-hop{0%,100%{transform:translateY(0)}45%,55%{transform:translateY(-4px)}}
-.floppy-assistant:hover .floppy-sprite,.floppy-assistant:focus-within .floppy-sprite{animation-play-state:paused}
-.floppy-assistant:hover .floppy-leg-left,.floppy-assistant:hover .floppy-leg-right,.floppy-assistant:focus-within .floppy-leg-left,.floppy-assistant:focus-within .floppy-leg-right{animation-play-state:paused}
-@keyframes floppy-shuffle{0%,49%{transform:translateY(0)}50%,100%{transform:translateY(-1px)}}
+/* Flip through drawn cels in held steps. Only the limbs and gaze change
+   direction, so the shutter and the label stay on the same side of the disk. */
+.floppy-ink {
+  fill: none;
+  stroke: #222;
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  shape-rendering: geometricPrecision;
+}
+.floppy-facing { transform: var(--floppy-turn, none); }
+.floppy-upper { transform-origin: 17px 31px; transform: rotate(calc(var(--tilt) * var(--floppy-direction, 1))); }
+.floppy-assistant:where(.noticed, .inviting) .floppy-shutter { animation: floppy-click 1.2s step-end; }
+@keyframes floppy-click {
+  0%, 66% { transform: translateX(0); }
+  32% { transform: translateX(-2px); }
+}
+.floppy-assistant[data-facing=left],
+.floppy-assistant.noticed[data-visitor-side=left] { --floppy-turn: translateX(35px) scaleX(-1); --floppy-direction: -1; }
+.floppy-assistant.noticed[data-visitor-side=right] { --floppy-turn: none; --floppy-direction: 1; }
+.floppy-cels { transform: var(--stand); }
+
+.floppy-assistant:where(.walking) .floppy-cels { animation: floppy-stride .72s step-end infinite; }
+@keyframes floppy-stride {
+  0%, 100% { transform: var(--stride); }
+  25% { transform: var(--pass); }
+  50% { transform: var(--step); }
+  75% { transform: var(--rise); }
+}
+.floppy-assistant:where([data-mood=peek]) .floppy-cels { animation: floppy-lookout 5.5s step-end; }
+@keyframes floppy-lookout {
+  0%, 88% { transform: var(--stand); }
+  12%, 76% { transform: var(--waveOut); }
+  22% { transform: var(--lookout); }
+  50% { transform: var(--lookAcross); }
+}
+.floppy-assistant:where([data-mood=nap]) .floppy-cels { transform: var(--snooze); }
+.floppy-assistant:where([data-mood=bounce]) .floppy-cels { transform: var(--skate); }
+.floppy-assistant:where(.recoiling) .floppy-cels { transform: var(--brace); }
+.floppy-assistant:where(.blog-nudge) .floppy-sprite { animation: floppy-blog-hop .78s step-end; }
+.floppy-assistant:where(.blog-nudge) .floppy-cels { animation: floppy-land-and-point .78s step-end; }
+@keyframes floppy-blog-hop {
+  0%, 54% { transform: translateY(0); }
+  20% { transform: translateY(-4px); }
+  40% { transform: translateY(-2px); }
+}
+@keyframes floppy-land-and-point {
+  0%, 54% { transform: var(--brace); }
+  20% { transform: var(--hop); }
+  66% { transform: var(--offer); }
+}
+.floppy-assistant:where(:hover, :focus-within) .floppy-cels { animation: none; transform: var(--stand); }
+.floppy-assistant:where(.noticed) .floppy-cels { animation: floppy-wave 1.2s step-end; }
+@keyframes floppy-wave {
+  0%, 86% { transform: var(--offer); }
+  14%, 48% { transform: var(--waveUp); }
+  32%, 66% { transform: var(--waveOut); }
+}
+.floppy-assistant:where(.inviting) .floppy-cels { animation: floppy-present 1.3s step-end; }
+@keyframes floppy-present {
+  0%, 92% { transform: var(--stand); }
+  12% { transform: var(--waveOut); }
+  28% { transform: var(--offer); }
+}
+.floppy-assistant:where([data-mood=dodge]) .floppy-cels { animation: floppy-scoot .48s step-end; }
+@keyframes floppy-scoot {
+  0% { transform: var(--brace); }
+  20% { transform: var(--stride); }
+  42% { transform: var(--skate); }
+  82% { transform: var(--pass); }
+}
 .reduced-motion .floppy-assistant *{animation:none!important}
 .screen-os[inert] .floppy-assistant{visibility:hidden}
 .compact .floppy-assistant{width:66px}

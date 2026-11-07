@@ -12,14 +12,49 @@ const thoughts = [
   {title:'The short version.', text:'Education, experience, and the tools Charles works with. All in one document.', action:'Résumé', app:'resume'}
 ];
 
-// Pixel disk and face, with simple curved limbs for a softer silhouette.
-const disk = `<svg class="floppy-sprite" viewBox="-5 0 44 42" width="88" height="84" shape-rendering="crispEdges" aria-hidden="true">
-  <g fill="none" stroke="#222" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" shape-rendering="geometricPrecision">
-    <path class="floppy-arm-left" d="M3 19Q-1 18-1 22Q0 25-4 24"/>
-    <path class="floppy-arm-right" d="M32 19Q36 18 36 22Q35 25 38 24"/>
-    <path class="floppy-leg-left" d="M11 32Q12 35 10 37Q8 39 6 37"/>
-    <path class="floppy-leg-right" d="M24 32Q23 35 25 37Q27 39 29 37"/>
-  </g>
+// Each cel uses the same disk shell. The curves are drawn in the disk's original
+// pixel coordinates, so elbows bend and feet plant without stretching the label.
+const looseArms = 'M3 19Q0 20 0 23Q0 25 -3 25 M32 19Q35 20 35 23Q35 25 38 25';
+const planted = 'M11 31Q12 35 10 37Q9 39 6 38 M24 31Q23 35 25 37Q26 39 29 38';
+const handOnHip = 'M3 19Q-4 20 -2 24Q0 26 4 24 ';
+const shadingEyes = handOnHip + 'M32 20Q39 19 35 13Q34 10 28 10';
+const readyArms = 'M3 19Q-2 20 -3 16Q-4 14 -3 13 M32 19Q36 21 37 17Q38 15 38 13';
+const bentKnees = 'M11 31Q4 33 8 35Q10 36 6 36 M24 31Q31 33 27 35Q25 36 30 36';
+const poses = {
+  stand: {},
+  // Contact, passing foot, opposite contact, opposite passing foot.
+  stride: {arms: 'M3 19Q-1 20 -4 16 M32 19Q35 26 38 21', legs: 'M11 31Q8 36 3 37Q1 38 0 36 M24 31Q28 32 26 37Q27 39 32 37'},
+  pass: {lift: -1, arms: looseArms, legs: 'M11 31Q7 35 10 36Q13 36 14 34 M24 31Q22 36 24 39Q26 40 29 39'},
+  step: {arms: 'M3 19Q-1 26 -4 21 M32 19Q35 20 38 16', legs: 'M11 31Q16 32 15 37Q17 39 21 37 M24 31Q20 35 16 37Q14 38 13 36'},
+  rise: {lift: -1, arms: looseArms, legs: 'M11 31Q9 36 11 39Q13 40 16 39 M24 31Q20 33 21 35Q24 37 26 34'},
+  waveUp: {tilt: -4, arms: handOnHip + 'M32 19Q37 22 36 15Q34 11 36 9', gaze: 1},
+  waveOut: {tilt: -3, arms: handOnHip + 'M32 19Q36 22 37 17Q38 14 38 12', gaze: 1},
+  lookout: {tilt: 4, arms: shadingEyes, gaze: 2},
+  lookAcross: {tilt: -2, arms: shadingEyes, gaze: -2},
+  offer: {tilt: 3, arms: handOnHip + 'M32 19Q34 23 36 21Q38 19 38 17', gaze: 1},
+  brace: {lift: 2, arms: readyArms, legs: bentKnees, blink: true},
+  hop: {lift: -1, arms: readyArms, legs: 'M11 31Q6 33 8 35Q10 36 12 33 M24 31Q29 33 27 35Q25 36 23 33'},
+  skate: {tilt: -6, arms: 'M3 19Q-1 18 -4 14 M32 19Q34 25 38 22', legs: 'M11 31Q7 32 5 35Q4 36 2 34 M24 31Q25 37 30 37Q32 37 33 36', gaze: 2},
+  snooze: {tilt: 5, lift: 3, arms: 'M3 19Q-2 25 5 25Q8 25 11 23 M32 19Q37 25 30 25Q26 25 24 23', legs: bentKnees, blink: true},
+};
+
+const frameWidth = 52;
+const frames = Object.entries(poses);
+const frameOffsets = frames.map(([name], index) => `--${name}:translateX(${-index * frameWidth}px)`).join(';');
+function drawFrame([, {arms = looseArms, legs = planted, lift = 0, tilt = 0, gaze = 0, blink = false}], index) {
+  const eyes = blink ? 'M11 22h4v1h-4zM21 22h4v1h-4z' : 'M12 20h1v3h-1zM22 20h1v3h-1z';
+  return `<g transform="translate(${index * frameWidth} ${lift})">
+    <path class="floppy-ink floppy-facing" d="${legs}"/>
+    <g class="floppy-upper" style="--tilt:${tilt}deg">
+      <use href="#floppy-case"/>
+      <path class="floppy-ink floppy-facing" d="${arms}"/>
+      <g class="floppy-facing"><path fill="#333" transform="translate(${gaze} 0)" d="${eyes}"/></g>
+    </g>
+  </g>`;
+}
+
+const disk = `<svg class="floppy-sprite" viewBox="-5 0 44 42" width="88" height="84" shape-rendering="crispEdges" aria-hidden="true" style="${frameOffsets}">
+  <defs><g id="floppy-case">
   <path fill="#111" d="M4 1h24v1h2v2h2v28H3V2h1z"/>
   <path fill="var(--floppy-plastic, #6879ad)" d="M4 2h24v2h3v27H4z"/>
   <path fill="#aab6db" d="M4 2h3v1H5v27H4zM5 2h23v1H5z"/>
@@ -28,9 +63,10 @@ const disk = `<svg class="floppy-sprite" viewBox="-5 0 44 42" width="88" height=
   <g class="floppy-shutter"><path fill="#bbb" d="M8 2h17v10H8z"/><path fill="#eee" d="M8 2h17v1H8zM8 3h1v8H8z"/><path fill="#777" d="M24 3h1v9H9v-1h15z"/><path fill="#292b38" d="M19 4h4v6h-4z"/><path fill="#f5f5f5" d="M10 4h6v1h-6z"/></g>
   <path fill="#222" d="M7 15h21v15H7z"/><path fill="#fff6d9" d="M8 16h19v13H8z"/>
   <path fill="#c6bc9e" d="M8 28h19v1H8zM26 16h1v12h-1z"/><path fill="#d88970" d="M9 17h16v1H9z"/>
-  <path class="floppy-eyes" fill="#333" d="M12 20h1v3h-1zM22 20h1v3h-1z"/>
   <path fill="#333" d="M15 25h5v1h-5z"/>
   <path fill="#111" d="M5 3h1v2H5zM28 26h2v3h-2z"/>
+  </g></defs>
+  <g class="floppy-cels">${frames.map(drawFrame).join('')}</g>
 </svg>`;
 
 export class FloppyAssistant {
@@ -49,7 +85,13 @@ export class FloppyAssistant {
     this.button = root.querySelector('.floppy-button');
     root.hidden = this.readStorage('localStorage', HIDDEN_KEY) === '1';
     this.syncToggle();
-    root.addEventListener('pointerenter', event => { this.hovered = true; this.notice(); this.prepareDodge(event); });
+    root.addEventListener('pointerenter', event => {
+      this.hovered = true;
+      const box = this.button.getBoundingClientRect();
+      root.dataset.visitorSide = event.clientX < box.left + box.width / 2 ? 'left' : 'right';
+      this.notice();
+      this.prepareDodge(event);
+    });
     root.addEventListener('pointerleave', () => { this.hovered = false; this.cancelDodge(); root.classList.remove('noticed'); });
     root.addEventListener('focusin', () => { this.cancelDodge(); this.notice(); });
     // Once a press starts, stay put. Touch and keyboard access never dodge.
@@ -187,13 +229,16 @@ export class FloppyAssistant {
     this.cancelDodge();
     this.view.cancelAnimationFrame?.(this.walkFrame);
     this.walkTimer = null; this.walkFrame = null;
-    this.root.classList.remove('walking','blog-nudge');
+    this.root.classList.remove('walking','blog-nudge','recoiling');
     this.root.style.removeProperty('--floppy-plastic');
     this.setMood('still');
   }
   motionChanged() {
     this.stopWalking();
     this.start();
+  }
+  faceDirection(horizontal) {
+    if (horizontal) this.root.dataset.facing = horizontal < 0 ? 'left' : 'right';
   }
   setMood(mood) {
     this.mood = mood;
@@ -224,7 +269,9 @@ export class FloppyAssistant {
     const colors = ['#6879ad','#7d78a4','#6c918b','#9a8467'];
     let x=parseFloat(this.root.style.left), y=parseFloat(this.root.style.top);
     let vx=(this.random()<.5?-1:1)*(75+this.random()*15), vy=(this.random()<.5?-1:1)*(50+this.random()*15);
+    this.faceDirection(vx);
     let previous,elapsed=0,painted=0,hits=0;
+    let recoilUntil = 0;
     const duration=24000+this.random()*10000;
     const step=now=>{
       if (!this.motion() || this.root.hidden) { this.stopWalking(); return; }
@@ -238,7 +285,12 @@ export class FloppyAssistant {
         if(x<b.left || x>b.right){vx=-vx;x=x<b.left?b.left+(b.left-x):b.right-(x-b.right);hit=true;}
         if(y<b.top || y>b.bottom){vy=-vy;y=y<b.top?b.top+(b.top-y):b.bottom-(y-b.bottom);hit=true;}
         x=Math.max(b.left,Math.min(b.right,x));y=Math.max(b.top,Math.min(b.bottom,y));
-        if(hit)this.root.style.setProperty('--floppy-plastic',colors[++hits%colors.length]);
+        if (hit) {
+          this.faceDirection(vx);
+          this.root.style.setProperty('--floppy-plastic', colors[++hits % colors.length]);
+          recoilUntil = tick + 240;
+        }
+        this.root.classList.toggle('recoiling', tick < recoilUntil);
         this.moveTo(x,y);
       }
       if(elapsed>=duration){this.finishMood();return;}
@@ -267,6 +319,7 @@ export class FloppyAssistant {
     const options=[0,.7,-.7,1.4,-1.4,Math.PI].map(turn=>({x:Math.max(b.left,Math.min(b.right,from.x+Math.cos(angle+turn)*120)),y:Math.max(b.top,Math.min(b.bottom,from.y+Math.sin(angle+turn)*100))}));
     const to=options.find(p=>Math.hypot(p.x-from.x,p.y-from.y)>50&&!controls.some(r=>p.x<r.right+4&&p.x+width>r.left-4&&p.y<r.bottom+4&&p.y+height>r.top-4));
     if(!to)return;
+    this.faceDirection(to.x - from.x);
     this.stopWalking();this.dodged=true;this.setMood('dodge');this.root.classList.add('walking');
     let elapsed=0,previous;
     const step=now=>{
@@ -313,6 +366,7 @@ export class FloppyAssistant {
     const destination = candidates.sort((a,c)=>Math.hypot(a.x-from.x,a.y-from.y)-Math.hypot(c.x-from.x,c.y-from.y))[0];
     const to = {x:Math.max(b.left,Math.min(b.right,destination.x)),y:Math.max(b.top,Math.min(b.bottom,destination.y))};
     const duration = Math.max(1200,Math.hypot(to.x-from.x,to.y-from.y)/65*1000);
+    this.faceDirection(to.x - from.x);
     this.dismiss(); this.root.classList.add('walking');
     let elapsed = 0, previous;
     const step = now => {
@@ -331,6 +385,7 @@ export class FloppyAssistant {
       const index = thoughts.findIndex(thought=>thought.app===id);
       if (index >= 0) this.thought = index;
       if (this.lastVisited === 'blog') {
+        this.faceDirection(current.left + current.width / 2 - (to.x + width / 2));
         this.root.classList.add('blog-nudge');
         this.jumpTimer = this.view.setTimeout(() => this.root.classList.remove('blog-nudge'),800);
       }
